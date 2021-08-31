@@ -177,12 +177,11 @@
 \maketitle
 
 \begin{abstract}
-    As sequential neural architectures become more deep and complex, estimating the uncertainty of their predictions is ever so challenging.
-    Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational cost.
-    In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, as an independent layer derived from Sequential Monte Carlo filtering.
-    We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} levels.
+    As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is a very challenging problem.
+    Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
+    In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} levels.
     Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on \ensuremath{\mathrm{CO_2}} predictions.
-    We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.
+   % We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.
 \end{abstract}
 
 \section{Introduction}
