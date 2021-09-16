@@ -221,11 +221,22 @@
 
 \section{Experiments}
 \label{sec:exp}
+\begin{itemize}
+	\item Smoothed particles trajectories' associated prediction:
+		sample particles from the posterior, smooth the trajectories, apply the model function, and plot the results as a interval.
+	\item prediction t+1: plot t+1 predictions as boxplots, along with the mean and the observations.
+	\item Averaged MSE:
+		sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
+\end{itemize}
 
 \subsection{Simulated data}
 \label{sec:exp:synthetic}
 
 \subsection{Air quality}
+\begin{itemize}
+	\item train kalman filter, sample under the gaussian law, plot boxplot
+	\item compare LSTM MC dropout, same boxplot (should be smaller)
+\end{itemize}
 \label{sec:exp:airquality}
 
 \section{Conclusion}
