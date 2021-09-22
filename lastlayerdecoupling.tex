@@ -1,196 +1,59 @@
-\def\year{2022}\relax
-%File: formatting-instructions-latex-2022.tex
-%release 2022.1
-\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
-\usepackage{aaai22}  % DO NOT CHANGE THIS
-\usepackage{times}  % DO NOT CHANGE THIS
-\usepackage{helvet}  % DO NOT CHANGE THIS
-\usepackage{courier}  % DO NOT CHANGE THIS
-\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
-\usepackage{graphicx} % DO NOT CHANGE THIS
-\urlstyle{rm} % DO NOT CHANGE THIS
-\def\UrlFont{\rm}  % DO NOT CHANGE THIS
-\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
-\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
-\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
-\frenchspacing  % DO NOT CHANGE THIS
-\setlength{\pdfpagewidth}{8.5in}  % DO NOT CHANGE THIS
-\setlength{\pdfpageheight}{11in}  % DO NOT CHANGE THIS
+% Template for ICASSP-2021 paper; to be used with:
+%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
+%          IEEEbib.bst - IEEE bibliography style file.
+% --------------------------------------------------------------------------
+\documentclass{article}
+\usepackage{spconf,amsmath,graphicx}
+
+\title{Last layer state space model}
 %
-% These are recommended to typeset algorithms but not required. See the subsubsection on algorithms. Remove them if you don't have algorithms in your paper.
-\usepackage{algorithm}
-\usepackage{algorithmic}
-
+% Single address.
+% ---------------
+\name{Author(s) Name(s)\thanks{Thanks to XYZ agency for funding.}}
+\address{Author Affiliation(s)}
 %
-% These are are recommended to typeset listings but not required. See the subsubsection on listing. Remove this block if you don't have listings in your paper.
-\usepackage{newfloat}
-\usepackage{listings}
-\lstset{%
-	basicstyle={\footnotesize\ttfamily},% footnotesize acceptable for monospace
-	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,% show line numbers, remove this entire line if you don't want the numbers.
-	aboveskip=0pt,belowskip=0pt,%
-	showstringspaces=false,tabsize=2,breaklines=true}
-\floatstyle{ruled}
-\newfloat{listing}{tb}{lst}{}
-\floatname{listing}{Listing}
+% For example:
+% ------------
+%\address{School\\
+%	Department\\
+%	Address}
 %
-%\nocopyright
+% Two addresses (uncomment and modify for two-address case).
+% ----------------------------------------------------------
+%\twoauthors
+%  {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
+%	{School A-B\\
+%	Department A-B\\
+%	Address A-B}
+%  {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
+%	while at ...}}
+%	{School C-D\\
+%	Department C-D\\
+%	Address C-D}
 %
-% PDF Info Is REQUIRED.
-% For /Title, write your title in Mixed Case.
-% Don't use accents or commands. Retain the parentheses.
-% For /Author, add all authors within the parentheses,
-% separated by commas. No accents, special characters
-% or commands are allowed.
-% Keep the /TemplateVersion tag as is
-%\pdfinfo{
-%/Title (AAAI Press Formatting Instructions for Authors Using LaTeX -- A Guide)
-%/Author (AAAI Press Staff, Pater Patel Schneider, Sunil Issar, J. Scott Penberthy, George Ferguson, Hans Guesgen, Francisco Cruz, Marc Pujol-Gonzalez)
-%/TemplateVersion (2022.1)
-%}
-
-% DISALLOWED PACKAGES
-% \usepackage{authblk} -- This package is specifically forbidden
-% \usepackage{balance} -- This package is specifically forbidden
-% \usepackage{color (if used in text)
-% \usepackage{CJK} -- This package is specifically forbidden
-% \usepackage{float} -- This package is specifically forbidden
-% \usepackage{flushend} -- This package is specifically forbidden
-% \usepackage{fontenc} -- This package is specifically forbidden
-% \usepackage{fullpage} -- This package is specifically forbidden
-% \usepackage{geometry} -- This package is specifically forbidden
-% \usepackage{grffile} -- This package is specifically forbidden
-% \usepackage{hyperref} -- This package is specifically forbidden
-% \usepackage{navigator} -- This package is specifically forbidden
-% (or any other package that embeds links such as navigator or hyperref)
-% \indentfirst} -- This package is specifically forbidden
-% \layout} -- This package is specifically forbidden
-% \multicol} -- This package is specifically forbidden
-% \nameref} -- This package is specifically forbidden
-% \usepackage{savetrees} -- This package is specifically forbidden
-% \usepackage{setspace} -- This package is specifically forbidden
-% \usepackage{stfloats} -- This package is specifically forbidden
-% \usepackage{tabu} -- This package is specifically forbidden
-% \usepackage{titlesec} -- This package is specifically forbidden
-% \usepackage{tocbibind} -- This package is specifically forbidden
-% \usepackage{ulem} -- This package is specifically forbidden
-% \usepackage{wrapfig} -- This package is specifically forbidden
-% DISALLOWED COMMANDS
-% \nocopyright -- Your paper will not be published if you use this command
-% \addtolength -- This command may not be used
-% \balance -- This command may not be used
-% \baselinestretch -- Your paper will not be published if you use this command
-% \clearpage -- No page breaks of any kind may be used for the final version of your paper
-% \columnsep -- This command may not be used
-% \newpage -- No page breaks of any kind may be used for the final version of your paper
-% \pagebreak -- No page breaks of any kind may be used for the final version of your paperr
-% \pagestyle -- This command may not be used
-% \tiny -- This is not an acceptable font size.
-% \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
-% \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
-
-\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
-
-% The file aaai22.sty is the style file for AAAI Press
-% proceedings, working notes, and technical reports.
-%
-
-% Title
-
-% Your title must be in mixed case, not sentence case.
-% That means all verbs (including short verbs like be, is, using,and go),
-% nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while
-% articles, conjunctions, and prepositions are lower case unless they
-% directly follow a colon or long dash
-\title{Last layer state space models}
-\author{
-    %Authors
-    % All authors must be in the same font size and format.
-%    Written by AAAI Press Staff\textsuperscript{\rm 1}\thanks{With help from the AAAI Publications Committee.}\\
-%    AAAI Style Contributions by Pater Patel Schneider,
-%    Sunil Issar,\\
-%    J. Scott Penberthy,
-%    George Ferguson,
-%    Hans Guesgen,
-%    Francisco Cruz\equalcontrib,
-%    Marc Pujol-Gonzalez\equalcontrib
-}
-\affiliations{
-    %Afiliations
-    \textsuperscript{\rm 1}Association for the Advancement of Artificial Intelligence\\
-    % If you have multiple authors and multiple affiliations
-    % use superscripts in text and roman font to identify them.
-    % For example,
-
-    % Sunil Issar, \textsuperscript{\rm 2}
-    % J. Scott Penberthy, \textsuperscript{\rm 3}
-    % George Ferguson,\textsuperscript{\rm 4}
-    % Hans Guesgen, \textsuperscript{\rm 5}.
-    % Note that the comma should be placed BEFORE the superscript for optimum readability
-
-    2275 East Bayshore Road, Suite 160\\
-    Palo Alto, California 94303\\
-    % email address must be in roman text type, not monospace or sans serif
-    publications22@aaai.org
-%
-% See more examples next
-}
-
-%Example, Single Author, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
-\iffalse
-\title{My Publication Title --- Single Author}
-\author {
-    Author Name
-}
-\affiliations{
-    Affiliation\\
-    Affiliation Line 2\\
-    name@example.com
-}
-\fi
-
-\iffalse
-%Example, Multiple Authors, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
-\title{My Publication Title --- Multiple Authors}
-\author {
-    % Authors
-    First Author Name,\textsuperscript{\rm 1}
-    Second Author Name, \textsuperscript{\rm 2}
-    Third Author Name \textsuperscript{\rm 1}
-}
-\affiliations {
-    % Affiliations
-    \textsuperscript{\rm 1} Affiliation 1\\
-    \textsuperscript{\rm 2} Affiliation 2\\
-    firstAuthor@affiliation1.com, secondAuthor@affilation2.com, thirdAuthor@affiliation1.com
-}
-\fi
-
-
-% REMOVE THIS: bibentry
-% This is only needed to show inline citations in the guidelines document. You should not need it and can safely delete it.
-\usepackage{bibentry}
-% END REMOVE bibentry
 
 \begin{document}
-
 \maketitle
 
 \begin{abstract}
-    As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is a very challenging problem.
-    Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
-    In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} levels.
-    Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on \ensuremath{\mathrm{CO_2}} predictions.
-    We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.
+	As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is a very challenging problem.
+	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
+	In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} levels.
+	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on \ensuremath{\mathrm{CO_2}} predictions.
+	We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.
 \end{abstract}
+
+\begin{keywords}
+	One, two, three, four, five
+\end{keywords}
 
 \section{Introduction}
 \label{sec:intro}
 \begin{itemize}
-\item Describe the active research on bayesian RNN and uncertainty for time series (cf Alice paper with transformer).
-\item Describe the specific application of predicting air quality, and consumptions with high social impact (use Oze Energies information).
-\item Describe the aim: separating  representation learning and uncertainty estimation (cf Nicolas Brosse paper on last layer classification).
-\item Describe your protocol: a new state space model on the last layer, trained with SMC.
+	\item Describe the active research on bayesian RNN and uncertainty for time series (cf Alice paper with transformer).
+	\item Describe the specific application of predicting air quality, and consumptions with high social impact (use Oze Energies information).
+	\item Describe the aim: separating  representation learning and uncertainty estimation (cf Nicolas Brosse paper on last layer classification).
+	\item Describe your protocol: a new state space model on the last layer, trained with SMC.
 \end{itemize}
 
 
@@ -200,33 +63,31 @@
 \subsection{Recurrent neural networks}
 \label{sec:background:rnn}
 \begin{itemize}
-\item Short background on RNN, GRU, LSTM (and maybe transformer as it could be extended to those models).
-\item Detail the equations for at least the generic model implemented later in the paper.
+	\item Short background on RNN, GRU, LSTM (and maybe transformer as it could be extended to those models).
+	\item Detail the equations for at least the generic model implemented later in the paper.
 \end{itemize}
 
 \subsection{Sequential Monte Carlo methods}
 \label{sec:background:smc}
 \begin{itemize}
-\item Provide a generic introduction to SMC.
-\item Explain the use of SMC to compute gradients with Fisher's identity (gradient descent and/or EM).
+	\item Provide a generic introduction to SMC.
+	\item Explain the use of SMC to compute gradients with Fisher's identity (gradient descent and/or EM).
 \end{itemize}
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
 
 \begin{itemize}
-\item Detail the protocol : training / last layer noise / SMC.
-\item Detail the applications: fine tuning of last layer weights, short-time prediction with confidence intervals.
+	\item Detail the protocol : training / last layer noise / SMC.
+	\item Detail the applications: fine tuning of last layer weights, short-time prediction with confidence intervals.
 \end{itemize}
 
 \section{Experiments}
 \label{sec:exp}
 \begin{itemize}
-	\item Smoothed particles trajectories' associated prediction:
-		sample particles from the posterior, smooth the trajectories, apply the model function, and plot the results as a interval.
+	\item Smoothed particles trajectories' associated prediction: sample particles from the posterior, smooth the trajectories, apply the model function, and plot the results as a interval.
 	\item prediction t+1: plot t+1 predictions as boxplots, along with the mean and the observations.
-	\item Averaged MSE:
-		sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
+	\item Averaged MSE: sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
 \end{itemize}
 
 \subsection{Simulated data}
@@ -239,6 +100,94 @@
 \end{itemize}
 \label{sec:exp:airquality}
 
-\section{Conclusion}
-\label{sec:conclusion}
+% Below is an example of how to insert images. Delete the ``\vspace'' line,
+% uncomment the preceding line ``\centerline...'' and replace ``imageX.ps''
+% with a suitable PostScript file name.
+% -------------------------------------------------------------------------
+%\begin{figure}[htb]
+
+%\begin{minipage}[b]{1.0\linewidth}
+%  \centering
+%  \centerline{\includegraphics[width=8.5cm]{image1}}
+%%  \vspace{2.0cm}
+%  \centerline{(a) Result 1}\medskip
+%\end{minipage}
+%%
+%\begin{minipage}[b]{.48\linewidth}
+%  \centering
+%  \centerline{\includegraphics[width=4.0cm]{image3}}
+%%  \vspace{1.5cm}
+%  \centerline{(b) Results 3}\medskip
+%\end{minipage}
+%\hfill
+%\begin{minipage}[b]{0.48\linewidth}
+%  \centering
+%  \centerline{\includegraphics[width=4.0cm]{image4}}
+%%  \vspace{1.5cm}
+%  \centerline{(c) Result 4}\medskip
+%\end{minipage}
+%%
+%\caption{Example of placing a figure with experimental results.}
+%\label{fig:res}
+%%
+%\end{figure}
+
+
+% To start a new column (but not a new page) and help balance the last-page
+% column length use \vfill\pagebreak.
+% -------------------------------------------------------------------------
+%\vfill
+%\pagebreak
+
+\section{COPYRIGHT FORMS}
+\label{sec:copyright}
+
+You must submit your fully completed, signed IEEE electronic copyright release
+form when you submit your paper. We {\bf must} have this form before your paper
+can be published in the proceedings.
+
+\section{RELATION TO PRIOR WORK}
+\label{sec:prior}
+
+The text of the paper should contain discussions on how the paper's
+contributions are related to prior work in the field. It is important
+to put new work in  context, to give credit to foundational work, and
+to provide details associated with the previous work that have appeared
+in the literature. This discussion may be a separate, numbered section
+or it may appear elsewhere in the body of the manuscript, but it must
+be present.
+
+You should differentiate what is new and how your work expands on
+or takes a different path from the prior studies. An example might
+read something to the effect: "The work presented here has focused
+on the formulation of the ABC algorithm, which takes advantage of
+non-uniform time-frequency domain analysis of data. The work by
+Smith and Cohen \cite{Lamp86} considers only fixed time-domain analysis and
+the work by Jones et al \cite{C2} takes a different approach based on
+fixed frequency partitioning. While the present study is related
+to recent approaches in time-frequency analysis [3-5], it capitalizes
+on a new feature space, which was not considered in these earlier
+studies."
+
+\vfill\pagebreak
+
+\section{REFERENCES}
+\label{sec:refs}
+
+List and number all bibliographical references at the end of the
+paper. The references can be numbered in alphabetic order or in
+order of appearance in the document. When referring to them in
+the text, type the corresponding reference number in square
+brackets as shown at the end of this sentence \cite{C2}. An
+additional final page (the fifth page, in most cases) is
+allowed, but must contain only references to the prior
+literature.
+
+% References should be produced using the bibtex program from suitable
+% BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
+% style file from IEEE produces unsorted bibliography list.
+% -------------------------------------------------------------------------
+\bibliographystyle{IEEEbib}
+\bibliography{refs.bib}
+
 \end{document}
