@@ -60,10 +60,30 @@
 
 \subsection{Recurrent neural networks}
 \label{sec:background:rnn}
-\begin{itemize}
-	\item Short background on RNN, GRU, LSTM (and maybe transformer as it could be extended to those models).
-	\item Detail the equations for the generic model implemented later in the paper.
-\end{itemize}
+Recurrent Neural Network (RNN) were first introduced as a more suited architecture for dealing with time varying input patterns \cite{Mozer1989AFB}.
+By replacing buffer based approaches with an updated context state, RNN are able to solve time series problems with short time dependencies, but are lackluster in problems requiring long term memory due to vanishing and exploding gradient \cite{Bengio1994LearningLD}.
+The Long Short Term Memory (LSTM) model proposed in \cite{Hochreiter1997LongSM} aims at bridging that gap by enforcing error flow throughout time in the network.
+The LSTM architecture was modified in \cite{Cho2014LearningPR} in order to simplify its implementation and improve computation times, resulting in a novel model called Gated Recurrent Unit (GRU).
+
+These recurrent architectures are able to approximate complex nonlinear time series.
+Their parameters are conveniently estimated using current deep learning frameworks, which implement gradient descent through an automated differentiation procedure.
+% In parallel to these advances on recurrent architectures, Convolutional Neural Networks (CNN), rendered popular by \cite{Krizhevsky2012ImageNetCW} for image classification, have been adapted to time series problem.
+% The approaches proposed in \cite{Jzefowicz2016ExploringTL,Kim2016CharacterAwareNL} outperformed traditional Natural Language Processing (NLP) models by replacing the embedding layer with a character-level convolutional layer.
+% Following this idea, \cite{Oord2016WaveNetAG} considerably improved on the speech to text state of the art, by using dilated convolutions, increasing the receptive fields of WaveNet at each layer.
+% One year later, \cite{Oord2017ParallelWF} improved on the existing architecture by introducing Parallel WaveNet, which provided similar performance for a lower computational cost.
+
+In this model, we implement a variation on the RNN, whose hidden states are computed as:
+$$
+	h_t = \tanh(W_h h_{t-1} + W_u u_t + b), \forall 1 \leq t \leq T
+$$
+where $u_t$ are the input at time $t$ and $\{W_u, W_h, b\}$ are the parameters of the model. The initial hidden value is often set to zero, $h_0 \equiv 0$.
+
+
+% Recurrent and convolutional approaches coincide in that temporally close time steps data are matched together.
+% In 2017, \cite{Vaswani2017AttentionIA}  proposed an attention based approach to solve NLP tasks that consider the entire input sequence in parallel.
+% The Transformer model is based on a self-attention mechanism, that computes an attention value for every element of a sequence with respect to all others to model their dependency.
+% This attention mechanism allows to understand at each time step which input elements are crucial to predict the new state.
+% This makes these networks more interpretable than their most widely-used recurrent counterparts such as LSTM or GRU networks and motivates a keen interest for such approaches to predict complex time series.
 
 \subsection{Sequential Monte Carlo methods}
 \label{sec:background:smc}
@@ -74,6 +94,22 @@
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
+Our proposed architecture can be decomposed in two decoupled blocks.
+An input model is responsible for extracting relevant features from the input time series, and can assume any architecture.
+Its final hidden states are fed to a Sequential Monte Carlo Layer (SMCL), based on a plain RNN, for uncertainty estimation.
+
+Considering an input model $f_\varphi$, our model is defined as follow:
+\begin{equation*}
+	\left\{
+	\begin{aligned}
+		\tilde u_h & = f_\varphi(u_t)                                     \\
+		h_t        & = \tanh(W_h h_{t-1} + W_u \tilde u_t + b_h) + \eta_t \\
+		y_t        & = W_y h_t + b_y + \epsilon_t                         \\
+	\end{aligned}
+	\right.
+\end{equation*}
+
+Where $\eta$ and $\epsilon$ are two sequences of i.i.d. real valued noises with covariance matrices $\Sigma_x$ and $\Sigma_y$.
 
 Provide simple equations for the smc model, along with formulas for the $\Sigma_{x, y}$ updates.
 
@@ -111,7 +147,7 @@ Evaluations listed in priority order
 \begin{enumerate}
 	\item Compare confidence interval with MC-dropout model
 	\item Compare MSE (average on particles) with classic finetuning: sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
-		\item Compare linear SMC with kalman filter, sample under the gaussian law, plot boxplot
+	\item Compare linear SMC with kalman filter, sample under the gaussian law, plot boxplot
 \end{enumerate}
 
 
