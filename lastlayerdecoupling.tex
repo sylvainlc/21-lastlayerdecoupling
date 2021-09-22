@@ -36,7 +36,7 @@
 \maketitle
 
 \begin{abstract}
-	As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is a very challenging problem.
+	As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is ever so challenging.
 	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
 	In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} levels.
 	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on \ensuremath{\mathrm{CO_2}} predictions.
@@ -51,11 +51,9 @@
 \label{sec:intro}
 \begin{itemize}
 	\item Describe the active research on bayesian RNN and uncertainty for time series (cf Alice paper with transformer).
-	\item Describe the specific application of predicting air quality, and consumptions with high social impact (use Oze Energies information).
 	\item Describe the aim: separating  representation learning and uncertainty estimation (cf Nicolas Brosse paper on last layer classification).
 	\item Describe your protocol: a new state space model on the last layer, trained with SMC.
 \end{itemize}
-
 
 \section{Background}
 \label{sec:background}
@@ -64,41 +62,58 @@
 \label{sec:background:rnn}
 \begin{itemize}
 	\item Short background on RNN, GRU, LSTM (and maybe transformer as it could be extended to those models).
-	\item Detail the equations for at least the generic model implemented later in the paper.
+	\item Detail the equations for the generic model implemented later in the paper.
 \end{itemize}
 
 \subsection{Sequential Monte Carlo methods}
 \label{sec:background:smc}
 \begin{itemize}
 	\item Provide a generic introduction to SMC.
-	\item Explain the use of SMC to compute gradients with Fisher's identity (gradient descent and/or EM).
+	\item Explain the use of SMC to compute gradients with Fisher's identity (gradient descent and EM).
 \end{itemize}
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
 
-\begin{itemize}
-	\item Detail the protocol : training / last layer noise / SMC.
-	\item Detail the applications: fine tuning of last layer weights, short-time prediction with confidence intervals.
-\end{itemize}
+Provide simple equations for the smc model, along with formulas for the $\Sigma_{x, y}$ updates.
+
+Protocol:
+\begin{enumerate}
+	\item Training with classic methods (train dataset)
+	\item Finetuning with MC (train dataset)
+\end{enumerate}
 
 \section{Experiments}
 \label{sec:exp}
+
+\subsection{Training}%
+\label{sub:training}
+
 \begin{itemize}
-	\item Smoothed particles trajectories' associated prediction: sample particles from the posterior, smooth the trajectories, apply the model function, and plot the results as a interval.
-	\item prediction t+1: plot t+1 predictions as boxplots, along with the mean and the observations.
-	\item Averaged MSE: sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
+	\item Compare EM and gradient training for $\Sigma_{x, y}$ estimation
 \end{itemize}
 
-\subsection{Simulated data}
-\label{sec:exp:synthetic}
+\subsection{Visualizations}%
+\label{sub:visualizations}
 
-\subsection{Air quality}
-\begin{itemize}
-	\item train kalman filter, sample under the gaussian law, plot boxplot
-	\item compare LSTM MC dropout, same boxplot (should be smaller)
-\end{itemize}
-\label{sec:exp:airquality}
+Visualizations listed in priority order
+\begin{enumerate}
+	\item Prediction at t+1: plot t+1 predictions as boxplots, along with the mean and the observations.
+	\item Prediction at t+k
+	\item Compare weights evolution with classic finetuning
+	\item Smoothed predictions: Smoothed particles trajectories' associated prediction: sample particles from the posterior, smooth the trajectories, apply the model function, and plot the results as a interval.
+\end{enumerate}
+
+\subsection{Evaluations}%
+\label{sub:evaluations}
+
+Evaluations listed in priority order
+\begin{enumerate}
+	\item Compare confidence interval with MC-dropout model
+	\item Compare MSE (average on particles) with classic finetuning: sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
+		\item Compare linear SMC with kalman filter, sample under the gaussian law, plot boxplot
+\end{enumerate}
+
 
 % Below is an example of how to insert images. Delete the ``\vspace'' line,
 % uncomment the preceding line ``\centerline...'' and replace ``imageX.ps''
@@ -139,49 +154,8 @@
 %\vfill
 %\pagebreak
 
-\section{COPYRIGHT FORMS}
-\label{sec:copyright}
-
-You must submit your fully completed, signed IEEE electronic copyright release
-form when you submit your paper. We {\bf must} have this form before your paper
-can be published in the proceedings.
-
-\section{RELATION TO PRIOR WORK}
-\label{sec:prior}
-
-The text of the paper should contain discussions on how the paper's
-contributions are related to prior work in the field. It is important
-to put new work in  context, to give credit to foundational work, and
-to provide details associated with the previous work that have appeared
-in the literature. This discussion may be a separate, numbered section
-or it may appear elsewhere in the body of the manuscript, but it must
-be present.
-
-You should differentiate what is new and how your work expands on
-or takes a different path from the prior studies. An example might
-read something to the effect: "The work presented here has focused
-on the formulation of the ABC algorithm, which takes advantage of
-non-uniform time-frequency domain analysis of data. The work by
-Smith and Cohen \cite{Lamp86} considers only fixed time-domain analysis and
-the work by Jones et al \cite{C2} takes a different approach based on
-fixed frequency partitioning. While the present study is related
-to recent approaches in time-frequency analysis [3-5], it capitalizes
-on a new feature space, which was not considered in these earlier
-studies."
-
-\vfill\pagebreak
-
 \section{REFERENCES}
 \label{sec:refs}
-
-List and number all bibliographical references at the end of the
-paper. The references can be numbered in alphabetic order or in
-order of appearance in the document. When referring to them in
-the text, type the corresponding reference number in square
-brackets as shown at the end of this sentence \cite{C2}. An
-additional final page (the fifth page, in most cases) is
-allowed, but must contain only references to the prior
-literature.
 
 % References should be produced using the bibtex program from suitable
 % BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
