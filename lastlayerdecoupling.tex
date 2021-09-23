@@ -49,8 +49,12 @@
 
 \section{Introduction}
 \label{sec:intro}
+
+Bayesian statistics are often combined with the expressiveness of deep learning models to provide uncertainty estimation \cite{Hinton1995BayesianLF,MacKay1992}.
+
+
 \begin{itemize}
-	\item Describe the active research on bayesian RNN and uncertainty for time series (cf Alice paper with transformer).
+	\item Describe the active research on Bayesian RNN and uncertainty for time series (cf Alice paper with transformer).
 	\item Describe the aim: separating  representation learning and uncertainty estimation (cf Nicolas Brosse paper on last layer classification).
 	\item Describe your protocol: a new state space model on the last layer, trained with SMC.
 \end{itemize}
@@ -78,6 +82,11 @@ $$
 $$
 where $u_t$ are the input at time $t$ and $\{W_u, W_h, b\}$ are the parameters of the model. The initial hidden value is often set to zero, $h_0 \equiv 0$.
 
+\begin{itemize}
+	\item insister sur souvent multi couches
+	\item Insister sur la présence d'un etat caché pour toutes les archi récurrentes
+\end{itemize}
+
 
 % Recurrent and convolutional approaches coincide in that temporally close time steps data are matched together.
 % In 2017, \cite{Vaswani2017AttentionIA}  proposed an attention based approach to solve NLP tasks that consider the entire input sequence in parallel.
@@ -103,7 +112,7 @@ Considering an input model $f_\varphi$, our model is defined as follow:
 	\left\{
 	\begin{aligned}
 		\tilde u_h & = f_\varphi(u_t)                                     \\
-		h_t        & = \tanh(W_h h_{t-1} + W_u \tilde u_t + b_h) + \eta_t \\
+		h_t        & = f_\theta(h_{t-1}, \tilde u_t, \eta_t) \\
 		y_t        & = W_y h_t + b_y + \epsilon_t                         \\
 	\end{aligned}
 	\right.
@@ -119,6 +128,12 @@ Protocol:
 	\item Finetuning with MC (train dataset)
 \end{enumerate}
 
+\begin{itemize}
+	\item Un par introduction state model
+	\item par description methodes monte carlo --> background ?
+	\item precision pour notre algo
+\end{itemize}
+
 \section{Experiments}
 \label{sec:exp}
 
@@ -126,6 +141,7 @@ Protocol:
 \label{sub:training}
 
 \begin{itemize}
+	\item Moins important ; pas besoin de courbes
 	\item Compare EM and gradient training for $\Sigma_{x, y}$ estimation
 \end{itemize}
 
@@ -145,7 +161,8 @@ Visualizations listed in priority order
 
 Evaluations listed in priority order
 \begin{enumerate}
-	\item Compare confidence interval with MC-dropout model
+	\item Compare confidence interval with MC-dropout model (soit LSTM dropout classique, soit en enlevant la derniere couche)
+	\item Compare with ARIMA/classic stat model
 	\item Compare MSE (average on particles) with classic finetuning: sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
 	\item Compare linear SMC with kalman filter, sample under the gaussian law, plot boxplot
 \end{enumerate}
@@ -189,9 +206,6 @@ Evaluations listed in priority order
 % -------------------------------------------------------------------------
 %\vfill
 %\pagebreak
-
-\section{REFERENCES}
-\label{sec:refs}
 
 % References should be produced using the bibtex program from suitable
 % BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
