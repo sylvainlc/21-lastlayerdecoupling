@@ -50,9 +50,31 @@
 \section{Introduction}
 \label{sec:intro}
 
-Bayesian statistics are often combined with the expressiveness of deep learning models to provide uncertainty estimation \cite{Hinton1995BayesianLF,MacKay1992}.
+Recurrent Neural Networks (RNN) were first introduced as an efficient and convenient architecture to address short time dependencies problems \cite{Mozer1989AFB}.
+They have been consistently improved to develop longer term memory, and optimize their implementations \cite{Bengio1994LearningLD,Hochreiter1997LongSM,Cho2014LearningPR}.
+Current deep learning framework allows stacking arbitrary high number of recurrent layers, whose parameters are estimated by gradient descent through an automated differentiation procedure.
+
+These recurrent architectures are able to approximate complex nonlinear time series, but suffer from overconfidence when evaluated outside of their training observations. Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation \cite{Hinton1995BayesianLF,MacKay1992}.
+
+Several architectures inspired by variational inference emerged by considering latent states as random variables and approximating the posterior.
+The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
+Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
+Similarly, introducing random variables directly into a neural network's weight can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
+In \cite{Blundell2015}, weights are considered as distributions instead of vector values, allowing the network to make more reasonable predictions about unseen data.
+
+Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as it's training mechanism.
+Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by adding a single non parametric Dropout layer during both training and evaluation tasks, as shown in \cite{Gal2016} for	feed forward networks, and later extending these results to recurrent architectures in \cite{Gal2016NIPS}.
+In the following years, MC Dropout have proven to be a reliable measure of uncertainty for many industrial applications, such as anomaly detection (\cite{Zhu2017DeepAC}), flight delay prediction (\cite{Vandal2018}) or molecular simulations (\cite{Wen2020UncertaintyQI}).
+
+todo:
+\begin{itemize}
+	\item Short ensemble models introduction, along with PI metrics
+	\item Particle filter approaches
+	\item shortcomings of above mentioned approaches, along with benchmarks
+\end{itemize}
 
 
+Objectives of this section
 \begin{itemize}
 	\item Describe the active research on Bayesian RNN and uncertainty for time series (cf Alice paper with transformer).
 	\item Describe the aim: separating  representation learning and uncertainty estimation (cf Nicolas Brosse paper on last layer classification).
@@ -64,18 +86,6 @@ Bayesian statistics are often combined with the expressiveness of deep learning 
 
 \subsection{Recurrent neural networks}
 \label{sec:background:rnn}
-Recurrent Neural Network (RNN) were first introduced as a more suited architecture for dealing with time varying input patterns \cite{Mozer1989AFB}.
-By replacing buffer based approaches with an updated context state, RNN are able to solve time series problems with short time dependencies, but are lackluster in problems requiring long term memory due to vanishing and exploding gradient \cite{Bengio1994LearningLD}.
-The Long Short Term Memory (LSTM) model proposed in \cite{Hochreiter1997LongSM} aims at bridging that gap by enforcing error flow throughout time in the network.
-The LSTM architecture was modified in \cite{Cho2014LearningPR} in order to simplify its implementation and improve computation times, resulting in a novel model called Gated Recurrent Unit (GRU).
-
-These recurrent architectures are able to approximate complex nonlinear time series.
-Their parameters are conveniently estimated using current deep learning frameworks, which implement gradient descent through an automated differentiation procedure.
-% In parallel to these advances on recurrent architectures, Convolutional Neural Networks (CNN), rendered popular by \cite{Krizhevsky2012ImageNetCW} for image classification, have been adapted to time series problem.
-% The approaches proposed in \cite{Jzefowicz2016ExploringTL,Kim2016CharacterAwareNL} outperformed traditional Natural Language Processing (NLP) models by replacing the embedding layer with a character-level convolutional layer.
-% Following this idea, \cite{Oord2016WaveNetAG} considerably improved on the speech to text state of the art, by using dilated convolutions, increasing the receptive fields of WaveNet at each layer.
-% One year later, \cite{Oord2017ParallelWF} improved on the existing architecture by introducing Parallel WaveNet, which provided similar performance for a lower computational cost.
-
 In this model, we implement a variation on the RNN, whose hidden states are computed as:
 $$
 	h_t = \tanh(W_h h_{t-1} + W_u u_t + b), \forall 1 \leq t \leq T
