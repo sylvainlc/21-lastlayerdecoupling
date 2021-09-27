@@ -59,27 +59,20 @@ These recurrent architectures are able to approximate complex nonlinear time ser
 Several architectures inspired by variational inference emerged by considering latent states as random variables and approximating the posterior.
 The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
 Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
-Similarly, introducing random variables directly into a neural network's weight can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
+Similarly, introducing random variables directly into a neural network's weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
 In \cite{Blundell2015}, weights are considered as distributions instead of vector values, allowing the network to make more reasonable predictions about unseen data.
 
 Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as it's training mechanism.
-Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by adding a single non parametric Dropout layer during both training and evaluation tasks, as shown in \cite{Gal2016} for	feed forward networks, and later extending these results to recurrent architectures in \cite{Gal2016NIPS}.
-In the following years, MC Dropout have proven to be a reliable measure of uncertainty for many industrial applications, such as anomaly detection (\cite{Zhu2017DeepAC}), flight delay prediction (\cite{Vandal2018}) or molecular simulations (\cite{Wen2020UncertaintyQI}).
+In contrast, Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by adding a single non parametric Dropout layer during both training and evaluation tasks, producing variable predictions from a single trained model, see \cite{Gal2016}.
+These results were later extended to recurrent architectures in \cite{Gal2016NIPS}.
+In the following years, MC Dropout methods have been applied in many industrial fields, such as anomaly detection (\cite{Zhu2017DeepAC}), flight delay prediction (\cite{Vandal2018}) or molecular simulations (\cite{Wen2020UncertaintyQI}).
+Alternatively, ensemble methods consists in training distinct networks to obtain a combined prediction, as shown in \cite{Pearce2018}.
+However, these frequentist approaches fail to guarantee proper calibration of the model, as highlighted by \cite{ashukha2020pitfalls}, and suffer various limitations, see \cite{Fong2020}.
 
-todo:
-\begin{itemize}
-	\item Short ensemble models introduction, along with PI metrics
-	\item Particle filter approaches
-	\item shortcomings of above mentioned approaches, along with benchmarks
-\end{itemize}
-
-
-Objectives of this section
-\begin{itemize}
-	\item Describe the active research on Bayesian RNN and uncertainty for time series (cf Alice paper with transformer).
-	\item Describe the aim: separating  representation learning and uncertainty estimation (cf Nicolas Brosse paper on last layer classification).
-	\item Describe your protocol: a new state space model on the last layer, trained with SMC.
-\end{itemize}
+In this paper, we introduce a new method for uncertainty estimation combining high expressivity, quality uncertainty estimations and ease of training.
+Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer.
+The former can be fitted through a traditional gradient descent iteration, while the latter is trained using Sequential Monte Carlo methods.
+Our uncertainty estimation layer can thus be built on top of an existing, already trained model.
 
 \section{Background}
 \label{sec:background}
