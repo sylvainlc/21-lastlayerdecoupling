@@ -4,6 +4,8 @@
 % --------------------------------------------------------------------------
 \documentclass{article}
 \usepackage{spconf,amsmath,graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
 
 \title{Last layer state space model}
 %
@@ -81,28 +83,28 @@ Our uncertainty estimation layer can thus be built on top of an existing, alread
 \label{sec:background:rnn}
 In this model, we implement a variation on the RNN, whose hidden states are computed as:
 $$
-	h_t = \tanh(W_h h_{t-1} + W_u u_t + b), \forall 1 \leq t \leq T
+	x_t = \tanh(W_x x_{t-1} + W_u u_t + b), \forall 1 \leq t \leq T
 $$
-where $u_t$ are the input at time $t$ and $\{W_u, W_h, b\}$ are the parameters of the model. The initial hidden value is often set to zero, $h_0 \equiv 0$.
+where $u_t$ are the input at time $t$ and $\{W_u, W_x, b\}$ are the parameters of the model. The initial hidden value is often set to zero, $x_0 \equiv 0$.
 
-\begin{itemize}
-	\item insister sur souvent multi couches
-	\item Insister sur la présence d'un etat caché pour toutes les archi récurrentes
-\end{itemize}
-
-
-% Recurrent and convolutional approaches coincide in that temporally close time steps data are matched together.
-% In 2017, \cite{Vaswani2017AttentionIA}  proposed an attention based approach to solve NLP tasks that consider the entire input sequence in parallel.
-% The Transformer model is based on a self-attention mechanism, that computes an attention value for every element of a sequence with respect to all others to model their dependency.
-% This attention mechanism allows to understand at each time step which input elements are crucial to predict the new state.
-% This makes these networks more interpretable than their most widely-used recurrent counterparts such as LSTM or GRU networks and motivates a keen interest for such approaches to predict complex time series.
+This layer is meant to be plugged on top of an existing sequential architecture, whose outputted hidden states act as the input vector $u_t$.
 
 \subsection{Sequential Monte Carlo methods}
 \label{sec:background:smc}
-\begin{itemize}
-	\item Provide a generic introduction to SMC.
-	\item Explain the use of SMC to compute gradients with Fisher's identity (gradient descent and EM).
-\end{itemize}
+
+We account for uncertainty in the pretrained architecture by modelling hidden states as random variables, and estimating their parameters.
+Consequently, we can no longer integrate over their possible values, and computation of the gradient becomes intractable.
+Instead, we leverage fisher's identity for an expression involving the posterior conditional expectation.
+$$
+\nabla \log p_\theta(y) = \mathbb{E}_\theta \left[ \nabla\log p_\theta(x, y) | Y \right]
+$$
+
+Sequential Monte Carlo methods aim at approximating this posterior by a set of weighted random samples.
+At each time step, these particles are associated likelihood weights, given the previous observation, in order to perpetuate only the most likely candidates.
+For any function $h$, we can approximate the conditional expectation as follows:
+\begin{align*}
+	\mathbb{E}_\theta \left[ h(x) | y \right] = \sum_{i=1}^N \omega_T^i h(\xi^i)
+\end{align*}
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
