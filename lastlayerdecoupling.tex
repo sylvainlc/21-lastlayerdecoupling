@@ -96,7 +96,7 @@ We account for uncertainty in the pretrained architecture by modelling hidden st
 Consequently, we can no longer integrate over their possible values, and computation of the gradient becomes intractable.
 Instead, we leverage fisher's identity for an expression involving the posterior conditional expectation.
 $$
-\nabla \log p_\theta(y) = \mathbb{E}_\theta \left[ \nabla\log p_\theta(x, y) | Y \right]
+	\nabla \log p_\theta(y) = \mathbb{E}_\theta \left[ \nabla\log p_\theta(x, y) | Y \right]
 $$
 
 Sequential Monte Carlo methods aim at approximating this posterior by a set of weighted random samples.
@@ -116,9 +116,9 @@ Considering an input model $f_\varphi$, our model is defined as follow:
 \begin{equation*}
 	\left\{
 	\begin{aligned}
-		\tilde u_h & = f_\varphi(u_t)                                     \\
+		\tilde u_h & = f_\varphi(u_t)                        \\
 		h_t        & = f_\theta(h_{t-1}, \tilde u_t, \eta_t) \\
-		y_t        & = W_y h_t + b_y + \epsilon_t                         \\
+		y_t        & = W_y h_t + b_y + \epsilon_t            \\
 	\end{aligned}
 	\right.
 \end{equation*}
