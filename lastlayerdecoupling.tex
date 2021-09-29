@@ -42,8 +42,7 @@
 	As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is ever so challenging.
 	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
 	In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} and humidity levels.
-	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on \ensuremath{\mathrm{CO_2}} predictions.
-	\textcolor{red}{Plutôt à mettre l'introduction :  We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.}
+	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on predictions.
 \end{abstract}
 
 \begin{keywords}
@@ -52,6 +51,7 @@
 
 \section{Introduction}
 \label{sec:intro}
+% We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.
 
 Recurrent Neural Networks (RNN) were first introduced as an efficient and convenient architecture to address short time dependencies problems \cite{Mozer1989AFB}.
 They have been consistently improved to develop longer term memory, and optimize their implementations \cite{Bengio1994LearningLD,Hochreiter1997LongSM,Cho2014LearningPR}.
@@ -72,11 +72,18 @@ In the following years, MC Dropout methods have been applied in many industrial 
 Alternatively, ensemble methods consists in training distinct networks to obtain a combined prediction, as shown in \cite{Pearce2018}.
 However, these frequentist approaches fail to guarantee proper calibration of the model, as highlighted by \cite{ashukha2020pitfalls}, and suffer various limitations, see \cite{Fong2020}.
 
+In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages: representation learning and uncertainty estimation.
+Their experiments indicate that the latter should be limited to the last layers of the model, as introducing randomness in the entire network increases complexity without offering much better results.
+
+However, the benchmarked methods for uncertainty estimation cannot be applied in a time series context, as latent states are dependant.
+Instead, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural network to tackle variable sequential problems, see \cite{Ma2020}.
+We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
+Particle filters have also proven reliable in other fields, such as presented in \cite{Liu2020LSTMPF} for object tracking.
+
 In this paper, we introduce a new method for uncertainty estimation combining high expressivity, quality uncertainty estimations and ease of training.
 Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer.
 The former can be fitted through a traditional gradient descent iteration, while the latter is trained using Sequential Monte Carlo methods.
 Our uncertainty estimation layer can thus be built on top of an existing, already trained model.
-
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
