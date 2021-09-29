@@ -3,7 +3,7 @@
 %          IEEEbib.bst - IEEE bibliography style file.
 % --------------------------------------------------------------------------
 \documentclass{article}
-\usepackage{spconf,amsmath,graphicx}
+\usepackage{spconf,amsmath,graphicx,xcolor}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 
@@ -40,9 +40,9 @@
 \begin{abstract}
 	As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is ever so challenging.
 	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
-	In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} levels.
+	In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} and humidity levels.
 	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on \ensuremath{\mathrm{CO_2}} predictions.
-	We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.
+	\textcolor{red}{Plutôt à mettre l'introduction :  We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.}
 \end{abstract}
 
 \begin{keywords}
@@ -81,6 +81,7 @@ Our uncertainty estimation layer can thus be built on top of an existing, alread
 
 \subsection{Recurrent neural networks}
 \label{sec:background:rnn}
+\textcolor{red}{Ici j'aurais plutot decrit un modele recurrent multi-couches (pas frocément RNN), l'essentiel est de mettre en avant qu'il y a $L$ couches intermédiaires ce qui crée de nombreux états internes... le message étant que mesurer l'impact de la variabilité de ces états sur la sortie est fastidieux.}
 In this model, we implement a variation on the RNN, whose hidden states are computed as:
 $$
 	x_t = \tanh(W_x x_{t-1} + W_u u_t + b), \forall 1 \leq t \leq T
@@ -92,18 +93,17 @@ This layer is meant to be plugged on top of an existing sequential architecture,
 \subsection{Sequential Monte Carlo methods}
 \label{sec:background:smc}
 
-We account for uncertainty in the pretrained architecture by modelling hidden states as random variables, and estimating their parameters.
+We account for uncertainty in the pretrained architecture by modelling hidden states as random variables, and estimating their parameters. \textcolor{red}{Plut\^ot écrire pour une séquence $(Y_1,\ldots,Y_T)$ pour mettre en avant l'aspect séquentiel des SMC}.
 Consequently, we can no longer integrate over their possible values, and computation of the gradient becomes intractable.
-Instead, we leverage fisher's identity for an expression involving the posterior conditional expectation.
+Instead, we leverage Fisher's identity for an expression involving the posterior conditional expectation.
 $$
-	\nabla \log p_\theta(y) = \mathbb{E}_\theta \left[ \nabla\log p_\theta(x, y) | Y \right]
+	\nabla \log p_\theta(Y) = \mathbb{E}_\theta \left[ \nabla\log p_\theta(X, Y) | Y \right]
 $$
-
 Sequential Monte Carlo methods aim at approximating this posterior by a set of weighted random samples.
 At each time step, these particles are associated likelihood weights, given the previous observation, in order to perpetuate only the most likely candidates.
 For any function $h$, we can approximate the conditional expectation as follows:
 \begin{align*}
-	\mathbb{E}_\theta \left[ h(x) | y \right] = \sum_{i=1}^N \omega_T^i h(\xi^i)
+	\mathbb{E}_\theta \left[ h(X) | Y \right] = \sum_{i=1}^N \omega_T^i h(\xi^i)
 \end{align*}
 
 \section{Last layer decoupling}
