@@ -4,8 +4,9 @@
 % --------------------------------------------------------------------------
 \documentclass{article}
 \usepackage{spconf,amsmath,graphicx,xcolor}
-\usepackage{amsmath}
+\usepackage{hyperref}
 \usepackage{amsfonts}
+\usepackage[ruled,vlined]{algorithm2e}
 
 \title{Last layer state space model}
 %
@@ -76,68 +77,80 @@ Our proposed architecture is composed of an arbitrary sequential model, followed
 The former can be fitted through a traditional gradient descent iteration, while the latter is trained using Sequential Monte Carlo methods.
 Our uncertainty estimation layer can thus be built on top of an existing, already trained model.
 
-\section{Background}
-\label{sec:background}
-
-\subsection{Recurrent neural networks}
-\label{sec:background:rnn}
-\textcolor{red}{Ici j'aurais plutot decrit un modele recurrent multi-couches (pas frocément RNN), l'essentiel est de mettre en avant qu'il y a $L$ couches intermédiaires ce qui crée de nombreux états internes... le message étant que mesurer l'impact de la variabilité de ces états sur la sortie est fastidieux.}
-In this model, we implement a variation on the RNN, whose hidden states are computed as:
-$$
-	x_t = \tanh(W_x x_{t-1} + W_u u_t + b), \forall 1 \leq t \leq T
-$$
-where $u_t$ are the input at time $t$ and $\{W_u, W_x, b\}$ are the parameters of the model. The initial hidden value is often set to zero, $x_0 \equiv 0$.
-
-This layer is meant to be plugged on top of an existing sequential architecture, whose outputted hidden states act as the input vector $u_t$.
-
-\subsection{Sequential Monte Carlo methods}
-\label{sec:background:smc}
-
-We account for uncertainty in the pretrained architecture by modelling hidden states as random variables, and estimating their parameters. \textcolor{red}{Plut\^ot écrire pour une séquence $(Y_1,\ldots,Y_T)$ pour mettre en avant l'aspect séquentiel des SMC}.
-Consequently, we can no longer integrate over their possible values, and computation of the gradient becomes intractable.
-Instead, we leverage Fisher's identity for an expression involving the posterior conditional expectation.
-$$
-	\nabla \log p_\theta(Y) = \mathbb{E}_\theta \left[ \nabla\log p_\theta(X, Y) | Y \right]
-$$
-Sequential Monte Carlo methods aim at approximating this posterior by a set of weighted random samples.
-At each time step, these particles are associated likelihood weights, given the previous observation, in order to perpetuate only the most likely candidates.
-For any function $h$, we can approximate the conditional expectation as follows:
-\begin{align*}
-	\mathbb{E}_\theta \left[ h(X) | Y \right] = \sum_{i=1}^N \omega_T^i h(\xi^i)
-\end{align*}
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
+
+\subsection{Proposed architecture}%
+\label{sub:proposed_architecture}
+
 Our proposed architecture can be decomposed in two decoupled blocks.
-An input model is responsible for extracting relevant features from the input time series, and can assume any architecture.
+An input model $h_\varphi$ is responsible for extracting relevant features from the input time series.
 Its final hidden states are fed to a Sequential Monte Carlo Layer (SMCL), based on a plain RNN, for uncertainty estimation.
 
-Considering an input model $f_\varphi$, our model is defined as follow:
+We consider the regression task associated with observations $(y_1, \cdots y_T)$ and inputs $(u_1, \cdots, u_T)$, and denote by $(x_{1:T})$ the hidden states of the model.
 \begin{equation*}
 	\left\{
 	\begin{aligned}
-		\tilde u_h & = f_\varphi(u_t)                        \\
-		h_t        & = f_\theta(h_{t-1}, \tilde u_t, \eta_t) \\
-		y_t        & = W_y h_t + b_y + \epsilon_t            \\
+		\tilde u_t & = h_\varphi(u_t)                        & \text{input model}       \\
+		x_t        & = g_\theta(x_{t-1}, \tilde u_t, \eta_t) & \text{state model}       \\
+		y_t        & = f_\theta(x_t, \epsilon_t)             & \text{observation model} \\
 	\end{aligned}
 	\right.
 \end{equation*}
-
 Where $\eta$ and $\epsilon$ are two sequences of i.i.d. real valued noises with covariance matrices $\Sigma_x$ and $\Sigma_y$.
 
-Provide simple equations for the smc model, along with formulas for the $\Sigma_{x, y}$ updates.
+\subsection{Input model}%
+\label{sub:input_model}
+We chose a multi layered GRU network to extract high level features from the inputs.
+Each hidden state is computed as follows for layer $1 \leq l \leq L$:
+$$
+	\tilde u^l_t = k_\varphi^l(\tilde u^{l-1}_t, \tilde u^l_{t-1}) \quad \forall 1 \leq t \leq T
+$$
+where the first layer is assimilated to the input vectors, $\tilde u^0 \equiv u$, and the initial hidden value is set to zero, $\tilde u^l_0 \equiv 0$.
+This model in trained by disabling the noise addition in the SMCL functions $g_\theta$ and $f_\theta$, and considering the entire model as a deterministic neural network.
+Through a traditional gradient descent, we then obtain estimations for the input model weights $\varphi$, as well as a pretraining for the SMCL layer.
 
-Protocol:
-\begin{enumerate}
-	\item Training with classic methods (train dataset)
-	\item Finetuning with MC (train dataset)
-\end{enumerate}
+\subsection{Uncertainty estimation}%
+\label{sub:uncertainty_estimation}
 
-\begin{itemize}
-	\item Un par introduction state model
-	\item par description methodes monte carlo --> background ?
-	\item precision pour notre algo
-\end{itemize}
+We account for uncertainty in the pretrained state and observation models by considering hidden states as random variables, and estimating their parameters.
+Consequently, we can no longer integrate over their possible values, and computation of the gradient becomes intractable.
+Instead, we leverage Fisher's identity for an expression involving the posterior conditional expectation.
+
+\begin{align}
+	\nabla \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]
+	\label{eq:grad_ll}
+\end{align}
+
+Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
+At each time step $t$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$, given the previous observation $y_{t-1}$, in order to propagate only the most likely candidates, see \ref{algo:particle_filter}.
+For any function $h$, we can approximate the conditional expectation as follows:
+\begin{align*}
+	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})
+\end{align*}
+
+We develop \ref{eq:grad_ll} to obtain an explicit form for loss function ; its gradient is an approximation for the likelihood's gradient, and can be computed by deep learning frameworks through automated differentiation.
+\begin{align*}
+	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
+	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
+	                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
+\end{align*}
+
+During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
+
+\begin{algorithm}
+	\KwIn{$\theta, y_{1:T}, \tilde u_{1:T}$}
+	\KwOut{$\xi_{1:T}^{1:N}$}
+	$\xi_0^i \gets \eta^i$\;
+	\For{$t \gets 0$ \KwTo $T$}{
+		$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
+		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
+		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
+	}
+	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate density function with mean $\mu$ and covariance matrix $\Sigma$.}
+	\label{algo:particle_filter}
+\end{algorithm}
 
 \section{Experiments}
 \label{sec:exp}
