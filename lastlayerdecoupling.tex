@@ -7,6 +7,8 @@
 \usepackage{hyperref}
 \usepackage{amsfonts}
 \usepackage[ruled,vlined]{algorithm2e}
+\usepackage{graphicx}
+\graphicspath{ {./images/}  }
 
 \title{Last layer state space model}
 %
@@ -137,7 +139,7 @@ For any function $h$, we can approximate the conditional expectation as follows:
 	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})
 \end{align*}
 
-We develop \ref{eq:grad_ll} to obtain an explicit form for loss function ; its gradient is an approximation for the likelihood's gradient, and can be computed by deep learning frameworks through automated differentiation.
+We develop \ref{eq:grad_ll} to obtain an explicit form of the loss function ; its gradient is an approximation for the likelihood's gradient, and can be computed by deep learning frameworks through automated differentiation.
 \begin{align*}
 	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
 	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
@@ -155,7 +157,7 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
 		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
 	}
-	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate density function with mean $\mu$ and covariance matrix $\Sigma$.}
+	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$.}
 	\label{algo:particle_filter}
 \end{algorithm}
 
@@ -164,14 +166,37 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 
 \subsection{Training}%
 \label{sub:training}
-
-\begin{itemize}
-	\item Moins important ; pas besoin de courbes
-	\item Compare EM and gradient training for $\Sigma_{x, y}$ estimation
-\end{itemize}
+Both training of the input model and the SMCL were performed on an air quality database, split into training (2020) and validation (January - XXX 2021) sets.
+Each is composed of week-long hourly records associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
+Trainings were conducted using the PyTorch framework, on a single GPU.
 
 \subsection{Visualizations}%
 \label{sub:visualizations}
+Our model is able to perform uncertainty estimation by propagating particles.
+In Figure~\ref{fig:filter_k+1}, we plot each particle's associated prediction, given the observation at the previous time step, on a validation sample.
+The confidence intervals displayed increase whenever the average prediction strays from the observation.
+
+Although predictions given the previous time step in quite performant, its application could be limited, as building management decisions are not usually hourly based.
+We seize this opportunity to explore longer range filtering.
+Since particles can no longer be resampled, we approximate their propagation.
+In Figure~\ref{fig:filter_k+24}, we develop particle trajectories, using observations, for 72 time steps (3 days).
+The second part of the graph represent their propagation ; as we model noise in the latent space, the confidence intervals grow steadily before converging in size.
+
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=\linewidth]{filter_kp1_hum.png}
+	\includegraphics[width=\linewidth]{filter_kp1_co2.png}
+	\caption{Prediction of humidity (top) and CO2 (bottom) given previous observations. Insert explanation about boxplots.}%
+	\label{fig:filter_k+1}
+\end{figure}
+
+\begin{figure}[htpb]
+	\centering
+	\includegraphics[width=\linewidth]{filter_kp24_hum.png}
+	\includegraphics[width=\linewidth]{filter_kp24_co2.png}
+	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<72$) and without ($t > 72$).}%
+	\label{fig:filter_k+24}
+\end{figure}
 
 Visualizations listed in priority order
 \begin{enumerate}
