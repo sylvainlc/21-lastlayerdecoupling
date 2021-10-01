@@ -48,7 +48,7 @@
 \end{abstract}
 
 \begin{keywords}
-	One, two, three, four, five
+Recurrent neural networks, Uncertainty quantification, Sequantial Monte Carlo.
 \end{keywords}
 
 \section{Introduction}
@@ -90,34 +90,33 @@ Our uncertainty estimation layer can thus be built on top of an existing, alread
 \section{Last layer decoupling}
 \label{sec:decoupling}
 
-\subsection{Proposed architecture}%
+\subsection{Proposed model}%
 \label{sub:proposed_architecture}
 
-Our proposed architecture can be decomposed in two decoupled blocks.
+Our proposed model can be decomposed in two decoupled blocks.
 An input model $h_\varphi$ is responsible for extracting relevant features from the input time series.
 Its final hidden states are fed to a Sequential Monte Carlo Layer (SMCL), based on a plain RNN, for uncertainty estimation.
 
-We consider the regression task associated with observations $(y_1, \cdots y_T)$ and inputs $(u_1, \cdots, u_T)$, and denote by $(x_{1:T})$ the hidden states of the model.
+In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$. Let $T\ge 1$ be a given time horizon. We consider the regression task associated with observations $Y_{1:T}$ and inputs $U_{1:T}$, and denote by $X_{1:T}$ the hidden states of the model. For all $t\geq 1$ consider the following model,
 \begin{equation*}
 	\left\{
 	\begin{aligned}
-		\tilde u_t & = h_\varphi(u_t)                        & \text{input model}       \\
-		x_t        & = g_\theta(x_{t-1}, \tilde u_t, \eta_t) & \text{state model}       \\
-		y_t        & = f_\theta(x_t, \epsilon_t)             & \text{observation model} \\
+		\widetilde U_t & = h_\varphi(U_t)                        & \text{input model}       \\
+		X_t        & = g_\theta(X_{t-1}, \widetilde U_t, \eta_t) & \text{state model}       \\
+		Y_t        & = f_\theta(X_t, \epsilon_t)             & \text{observation model,} \\
 	\end{aligned}
 	\right.
 \end{equation*}
-Where $\eta$ and $\epsilon$ are two sequences of i.i.d. real valued noises with covariance matrices $\Sigma_x$ and $\Sigma_y$.
+where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussain random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$.
 
 \subsection{Input model}%
 \label{sub:input_model}
-We chose a multi layered GRU network to extract high level features from the inputs.
-Each hidden state is computed as follows for layer $1 \leq l \leq L$:
+Extracting high-level features for the initial inputs can be done efficiently using several multi-layer neural network architectures.  In this paper, we chose a multi-layered GRU network such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
 $$
-	\tilde u^l_t = k_\varphi^l(\tilde u^{l-1}_t, \tilde u^l_{t-1}) \quad \forall 1 \leq t \leq T
+	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
-where the first layer is assimilated to the input vectors, $\tilde u^0 \equiv u$, and the initial hidden value is set to zero, $\tilde u^l_0 \equiv 0$.
-This model in trained by disabling the noise addition in the SMCL functions $g_\theta$ and $f_\theta$, and considering the entire model as a deterministic neural network.
+where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$.
+This model is trained by disabling the noise addition in the SMCL functions $g_\theta$ and $f_\theta$, and considering the entire model as a deterministic neural network.
 Through a traditional gradient descent, we then obtain estimations for the input model weights $\varphi$, as well as a pretraining for the SMCL layer.
 
 \subsection{Uncertainty estimation}%
