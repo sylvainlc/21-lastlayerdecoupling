@@ -107,7 +107,7 @@ In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use th
 	\end{aligned}
 	\right.
 \end{equation*}
-where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussain random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$.
+where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussiai random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$ and $\varphi$ and $\theta$ are unknown parameters.
 
 \subsection{Input model}%
 \label{sub:input_model}
@@ -115,11 +115,10 @@ Extracting high-level features for the initial inputs can be done efficiently us
 $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
-where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$.
-This model is trained by disabling the noise addition in the SMCL functions $g_\theta$ and $f_\theta$, and considering the entire model as a deterministic neural network.
-Through a traditional gradient descent, we then obtain estimations for the input model weights $\varphi$, as well as a pretraining for the SMCL layer.
+where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
+The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the presence of the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of the  the SMCL layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
-\subsection{Uncertainty estimation}%
+\subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 
 We account for uncertainty in the pretrained state and observation models by considering hidden states as random variables, and estimating their parameters.
@@ -156,7 +155,7 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
 		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
 	}
-	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$.}
+	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$. \textcolor{red}{Peut-être plutôt un algorithme complet avec toutes les étapes : pré-entraînement du }}
 	\label{algo:particle_filter}
 \end{algorithm}
 
