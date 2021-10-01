@@ -137,7 +137,7 @@ For any function $h$, we can approximate any smoothing expectation as follows:
 \begin{align*}
 	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})
 \end{align*}
-Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation.
+Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. Any particle smoother can be used to improve the Monte Carlo estimate, for instance the PaRIS algorithm proposed in \cite{} and further analyzed in \cite{}. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
 %\begin{align*}
 %	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
 %	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
@@ -158,6 +158,7 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$. \textcolor{red}{Peut-être plutôt un algorithme complet avec toutes les étapes : pré-entraînement de $\varphi$, approximation du gradient, mise \`a jour des paramètres.}}
 	\label{algo:particle_filter}
 \end{algorithm}
+
 
 \section{Experiments}
 \label{sec:exp}
