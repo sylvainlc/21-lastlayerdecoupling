@@ -137,7 +137,7 @@ For any function $h$, we can approximate any smoothing expectation as follows:
 \begin{align*}
 	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})
 \end{align*}
-We develop \ref{eq:grad_ll} to obtain an explicit form of the loss function ; its gradient is an approximation for the likelihood's gradient, and can be computed by deep learning frameworks through automated differentiation.
+Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation.
 %\begin{align*}
 %	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
 %	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
@@ -155,7 +155,7 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
 		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
 	}
-	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$. \textcolor{red}{Peut-être plutôt un algorithme complet avec toutes les étapes : pré-entraînement du }}
+	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$. \textcolor{red}{Peut-être plutôt un algorithme complet avec toutes les étapes : pré-entraînement de $\varphi$, approximation du gradient, mise \`a jour des paramètres.}}
 	\label{algo:particle_filter}
 \end{algorithm}
 
