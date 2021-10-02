@@ -128,22 +128,23 @@ In this paper we use Fisher's identity to propose a Monte Carlo extimator of the
 	\label{eq:grad_ll}
 \end{equation}
 where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this paper. A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation. 
-Particle filtering and smoothing algorithms are simulation based procedures used to approximate recursively such expectations, see for instance \cite{} and the references therein. 
+Particle smoothing algorithms are simulation based procedures used to approximate recursively such expectations, see for instance \cite{} and the references therein. 
 %This is a challenging issue as more and more practical cases are modeled using high dimensional state spaces (which means high dimensional integrals in \eqref{eq:def:smoothing}) and produce huge data sets (which means that $n$ is large and implies great storage and computational costs). Online parameter inference, which computes new parameter estimates on-the-fly as observations are received, also implies additional computational constraints which rules out a vast majority of standard maximum likelihood procedures. This chapter highlights some recent results on the analysis of the approximation of smoothing distributions using Sequential Monte Carlo (SMC) methods and their applications to (online) parameter inference. 
 %Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
- The auxiliary particle filter produces recursively a set of states $(\xi^{\ell}_t)_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_t)_{\ell=1}^N$ using importance sampling and resampling steps. %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$, 
-The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}.
-For any function $h$, we can approximate any smoothing expectation as follows:
-\begin{align*}
-	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})
-\end{align*}
-Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. Any particle smoother can be used to improve the Monte Carlo estimate, for instance the PaRIS algorithm proposed in \cite{} and further analyzed in \cite{}. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
+ The auxiliary particle filter introduced in \cite{} produces recursively a set of states $(\xi^{\ell}_t)_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_t)_{\ell=1}^N$ using importance sampling and resampling steps. At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_{\ell=1}^N$ approximate the filtering distribution at time $t$, i.e. the conditional distribution of $X_t$ given $Y_{0:t}$. %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$, 
+The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}. Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Poor man's smoother \cite{}, the Forward Filtering Backward Smoothing \cite{} or the Forward Filtering Backward Simulation algorithm \cite{}. Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to compute a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{} and its recent extensions \cite{}.
+%Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
+%\begin{align*}
+%	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
+%\end{align*}
+%The Poor man's smoother 
+
+Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
 %\begin{align*}
 %	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
 %	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
 %	                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
 %\end{align*}
-
 During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
 
 \begin{algorithm}
