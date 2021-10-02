@@ -148,14 +148,19 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
 
 \begin{algorithm}
-	\KwIn{$\theta, y_{1:T}, \tilde u_{1:T}$}
-	\KwOut{$\xi_{1:T}^{1:N}$}
+	\KwIn{$Y_{1:T},  U_{1:T}, \widetilde U_{1:T}$, initial estimates $\varphi$, $\theta$}
+	%\KwOut{$\xi_{1:T}^{1:N}$}
+Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with a standard loss\;
+Initialize $\widetilde \theta_0 = \widehat \theta$\;
+\For{each iteration $p\geq 1$}{
+Update $\widetilde \theta_p$ by stochastic gradient descent replacing \eqref{eq:grad_ll} by its SMC estimate\;
+}
 	$\xi_0^i \gets \eta^i$\;
-	\For{$t \gets 0$ \KwTo $T$}{
-		$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
-		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
-		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
-	}
+	%\For{$t \gets 0$ \KwTo $T$}{
+	%	$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
+	%	$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
+	%	$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
+	%}
 	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$. \textcolor{red}{Peut-être plutôt un algorithme complet avec toutes les étapes : pré-entraînement de $\varphi$, approximation du gradient, mise \`a jour des paramètres.}}
 	\label{algo:particle_filter}
 \end{algorithm}
