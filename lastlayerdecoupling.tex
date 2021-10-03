@@ -85,7 +85,7 @@ Particle filters have also proven reliable in other fields, such as presented in
 In this paper, we introduce a new method for uncertainty estimation combining high expressivity, quality uncertainty estimations and ease of training.
 Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer.
 The former can be fitted through a traditional gradient descent iteration, while the latter is trained using Sequential Monte Carlo methods.
-Our uncertainty estimation layer can thus be built on top of an existing, already trained model.
+Our uncertainty estimation layer can thus be built on top of an existing, already trained model. The model is presented in Section~\ref{sec:decoupling} and numerical experiments are displayed in Section~\ref{sec:exp}.
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
@@ -101,8 +101,8 @@ In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use th
 	\left\{
 	\begin{aligned}
 		\widetilde U_t & = h_\varphi(U_t)                        & \text{input model}       \\
-		X_t        & = g_\theta(X_{t-1}, \widetilde U_t, \eta_t) & \text{state model}       \\
-		Y_t        & = f_\theta(X_t, \epsilon_t)             & \text{observation model,} \\
+		X_t        & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t& \text{state model}       \\
+		Y_t        & = f_\theta(X_t)       + \epsilon_t      & \text{observation model,} \\
 	\end{aligned}
 	\right.
 \end{equation*}
