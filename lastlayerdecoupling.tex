@@ -94,10 +94,9 @@ Our uncertainty estimation layer can thus be built on top of an existing, alread
 \label{sub:proposed_architecture}
 
 Our proposed model can be decomposed into two decoupled blocks.
-An input model $h_\varphi$ is responsible for extracting relevant features from the input time series.
-Its final hidden states are fed to a Sequential Monte Carlo Layer (SMCL), based on a plain RNN, to design a generative model and allow uncertainty estimation.
+An input model $h_\varphi$ is responsible for extracting relevant features from the input time series. Then, the final hidden states of this network are fed to a Sequential Monte Carlo Layer (SMCL), based on a plain RNN, to design a generative model and allow uncertainty estimation.
 
-In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$. Let $T\ge 1$ be a given time horizon. We consider the regression task associated with observations $Y_{1:T}$ and inputs $U_{1:T}$, and denote by $X_{1:T}$ the hidden states of the model. For all $t\geq 1$ consider the following model,
+In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$. Let $T\ge 1$ be a given time horizon. We consider the regression task associated with observations $Y_{1:T}$ and inputs $U_{1:T}$, and denote by $X_{1:T}$ the hidden states of the model. For all $t\geq 1$, the model is:
 \begin{equation*}
 	\left\{
 	\begin{aligned}
@@ -107,7 +106,7 @@ In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use th
 	\end{aligned}
 	\right.
 \end{equation*}
-where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussiai random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$ and $\varphi$ and $\theta$ are unknown parameters.
+where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$ and $\varphi$ and $\theta$ are unknown parameters.
 
 \subsection{Input model}%
 \label{sub:input_model}
@@ -131,8 +130,9 @@ where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref
 Particle smoothing algorithms are simulation based procedures used to approximate recursively such expectations, see for instance \cite{} and the references therein. 
 %This is a challenging issue as more and more practical cases are modeled using high dimensional state spaces (which means high dimensional integrals in \eqref{eq:def:smoothing}) and produce huge data sets (which means that $n$ is large and implies great storage and computational costs). Online parameter inference, which computes new parameter estimates on-the-fly as observations are received, also implies additional computational constraints which rules out a vast majority of standard maximum likelihood procedures. This chapter highlights some recent results on the analysis of the approximation of smoothing distributions using Sequential Monte Carlo (SMC) methods and their applications to (online) parameter inference. 
 %Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
- The auxiliary particle filter introduced in \cite{} produces recursively a set of states $(\xi^{\ell}_t)_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_t)_{\ell=1}^N$ using importance sampling and resampling steps. At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_{\ell=1}^N$ approximate the filtering distribution at time $t$, i.e. the conditional distribution of $X_t$ given $Y_{0:t}$. %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$, 
-The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}. Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Poor man's smoother \cite{}, the Forward Filtering Backward Smoothing \cite{} or the Forward Filtering Backward Simulation algorithm \cite{}. Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to compute a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{} and its recent extensions \cite{}.
+ The auxiliary particle filter introduced in \cite{} produces first recursively a set of states $(\xi^{\ell}_t)_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_t)_{\ell=1}^N$ using importance sampling and resampling steps. At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_{\ell=1}^N$ approximate the filtering distribution at time $t$, i.e. the conditional distribution of $X_t$ given $Y_{0:t}$. %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$, 
+%The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}. 
+Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Poor man's smoother \cite{}, the Forward Filtering Backward Smoothing \cite{} or the Forward Filtering Backward Simulation algorithm \cite{}. Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{} and its recent extensions \cite{}.
 %Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
 %\begin{align*}
 %	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
@@ -147,6 +147,24 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 %\end{align*}
 During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
 
+%\begin{algorithm}
+%	\KwIn{$Y_{1:T},  U_{1:T}, \widetilde U_{1:T}$, initial estimates $\varphi$, $\theta$}
+%	%\KwOut{$\xi_{1:T}^{1:N}$}
+%Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with a standard loss\;
+%Initialize $\widetilde \theta_0 = \widehat \theta$\;
+%\For{each iteration $p\geq 1$}{
+%Update $\widetilde \theta_p$ by stochastic gradient descent replacing \eqref{eq:grad_ll} by its SMC estimate\;
+%}
+%	$\xi_0^i \gets \eta^i$\;
+%	\For{$t \gets 0$ \KwTo $T$}{
+%		$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
+%		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
+%		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
+%	}
+%	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$.}
+%	\label{algo:particle_filter}
+%\end{algorithm}
+
 \begin{algorithm}
 	\KwIn{$Y_{1:T},  U_{1:T}, \widetilde U_{1:T}$, initial estimates $\varphi$, $\theta$}
 	%\KwOut{$\xi_{1:T}^{1:N}$}
@@ -155,14 +173,14 @@ Initialize $\widetilde \theta_0 = \widehat \theta$\;
 \For{each iteration $p\geq 1$}{
 Update $\widetilde \theta_p$ by stochastic gradient descent replacing \eqref{eq:grad_ll} by its SMC estimate\;
 }
-	$\xi_0^i \gets \eta^i$\;
+	%$\xi_0^i \gets \eta^i$\;
 	%\For{$t \gets 0$ \KwTo $T$}{
 	%	$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
 	%	$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
 	%	$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
 	%}
-	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$. \textcolor{red}{Peut-être plutôt un algorithme complet avec toutes les étapes : pré-entraînement de $\varphi$, approximation du gradient, mise \`a jour des paramètres.}}
-	\label{algo:particle_filter}
+	\caption{Estimation of the two blocks.}
+	\label{algo:allsteps}
 \end{algorithm}
 
 
@@ -174,6 +192,7 @@ Update $\widetilde \theta_p$ by stochastic gradient descent replacing \eqref{eq:
 Both training of the input model and the SMCL were performed on an air quality database, split into training (2020) and validation (January - XXX 2021) sets.
 Each is composed of week-long hourly records associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 Trainings were conducted using the PyTorch framework, on a single GPU.
+\textcolor{red}{Donner taille des inputs, nombre de couches, taille des échantillons, nombre de particules... etc.}
 
 \subsection{Visualizations}%
 \label{sub:visualizations}
