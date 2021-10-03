@@ -106,7 +106,7 @@ In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use th
 	\end{aligned}
 	\right.
 \end{equation*}
-where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$ and $\varphi$ and $\theta$ are unknown parameters.
+where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$ and $\varphi$ and $\theta$ are unknown parameters. In this paper, we focus on settings where the transformations $(h_\varphi,g_\theta)$ are given by multi-layer neural networks architectures and $f_\theta$ is a final output layer. Estimating the parameters of such very high-dimensional models with unobserved (i.e. noisy) layers is a challenging task. We therefore propose to first train the input model following classical deep neural network training approaches and then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layers.
 
 \subsection{Input model}%
 \label{sub:input_model}
@@ -115,12 +115,12 @@ $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
 where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
-The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\widehat\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of  the SMCL layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
+The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\widehat\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of  the SMCL layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
 \subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 
-Estimating the parameter $\theta$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly since  it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
+Estimating the parameter $\theta$,  $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly since  it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
 In this paper we use Fisher's identity to propose a Monte Carlo extimator of the score function:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
@@ -166,12 +166,13 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 %\end{algorithm}
 
 \begin{algorithm}
-	\KwIn{$Y_{1:T},  U_{1:T}, \widetilde U_{1:T}$, initial estimates $\varphi$, $\theta$}
+	\KwIn{Observations and inputs $(Y^k_{1:T},U^k_{1:T})_{k=1}^M$. Initial estimates of $\varphi$, $\theta$.}
 	%\KwOut{$\xi_{1:T}^{1:N}$}
-Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with a standard loss\;
-Initialize $\widetilde \theta_0 = \widehat \theta$\;
-\For{each iteration $p\geq 1$}{
-Update $\widetilde \theta_p$ by stochastic gradient descent replacing \eqref{eq:grad_ll} by its SMC estimate\;
+Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with  loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^m$\;
+Initialize $\widetilde \theta_0 = \widehat \theta$, $\Sigma_x$ and $\Sigma_y$\;
+\For{each batch $1\leq k\leq M$}{
+Compute a SMC estimate $\widehat S_k^N$ of the score \eqref{eq:grad_ll}\;
+Compute $\widetilde \theta_{k+1}$ and update $\Sigma_x$ and $\Sigma_y$ by stochastic gradient descent using $\widehat S_k^N$\;
 }
 	%$\xi_0^i \gets \eta^i$\;
 	%\For{$t \gets 0$ \KwTo $T$}{
@@ -192,16 +193,19 @@ Update $\widetilde \theta_p$ by stochastic gradient descent replacing \eqref{eq:
 Both training of the input model and the SMCL were performed on an air quality database, split into training (2020) and validation (January - XXX 2021) sets.
 Each is composed of week-long hourly records associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 Trainings were conducted using the PyTorch framework, on a single GPU.
-\textcolor{red}{Donner taille des inputs, nombre de couches, taille des échantillons, nombre de particules... etc.}
+\textcolor{red}{Donner taille des inputs, nombre de couches, taille des échantillons, donner la fonction de co\^ut $\mathcal{L}_{\mathrm{inp}}$ (MSE j'imagine), nombre de particules... etc. il ne faut pas qu'il reste de myst\`eres.}
 
 \subsection{Visualizations}%
 \label{sub:visualizations}
-Our model is able to perform uncertainty estimation by propagating particles.
-In Figure~\ref{fig:filter_k+1}, we plot each particle's associated prediction, given the observation at the previous time step, on a validation sample.
-The confidence intervals displayed increase whenever the average prediction strays from the observation.
+We first illustrate the ability of our multi-layer model to capture the distribution of future observations. First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by 
+\begin{multline*}
+p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i \\
+\times \int m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
+\end{multline*}
+where $m_{\widehat\theta,\widehat\varphi}$ is transition density of the hidden state and $g_{\widehat\theta}$ is the density of the observation given the hidden state in the model described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$, where the integral is replaced by sampling through the model $m_{\widehat\theta,\widehat\varphi}$.
+\textcolor{red}{On peut ajouter un tableau sur un paquet d'échantillons de test (100 par exemple) en comptant le nombre de fois où la vérité tombe dans l'intervalle : moyenne et variance de cette quantité?}
 
-Although predictions given the previous time step in quite performant, its application could be limited, as building management decisions are not usually hourly based.
-We seize this opportunity to explore longer range filtering.
+Although predictions given the previous time step provide good performance, its application is limited to online building management to monitor houly air quality. We seize this opportunity to explore longer range prediction.
 Since particles can no longer be resampled, we approximate their propagation.
 In Figure~\ref{fig:filter_k+24}, we develop particle trajectories, using observations, for 72 time steps (3 days).
 The second part of the graph represent their propagation ; as we model noise in the latent space, the confidence intervals grow steadily before converging in size.
@@ -209,28 +213,28 @@ The second part of the graph represent their propagation ; as we model noise in 
 We benchmark our proposed architecture with MC Dropout methods, by implementing a simple LSTM Dropout model.
 In Figure~\ref{fig:boxplot_comparison}, we plot both confidence intervals on a validation sample.
 
-\begin{figure}[htpb]
+\begin{figure*}[htpb]
 	\centering
 	\includegraphics[width=\linewidth]{filter_kp1_hum.png}
 	\includegraphics[width=\linewidth]{filter_kp1_co2.png}
 	\caption{Prediction of humidity (top) and CO2 (bottom) given previous observations. Insert explanation about boxplots.}%
 	\label{fig:filter_k+1}
-\end{figure}
+\end{figure*}
 
-\begin{figure}[htpb]
+\begin{figure*}[htpb]
 	\centering
 	\includegraphics[width=\linewidth]{filter_kp24_hum.png}
 	\includegraphics[width=\linewidth]{filter_kp24_co2.png}
 	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<72$) and without ($t > 72$).}%
 	\label{fig:filter_k+24}
-\end{figure}
+\end{figure*}
 
-\begin{figure}[htpb]
+\begin{figure*}[htpb]
 	\centering
 	\includegraphics[width=\linewidth]{boxplot_comparison.png}
 	\caption{Boxplot comparison between SMCL and LSTM Dropout}%
 	\label{fig:boxplot_comparison}
-\end{figure}
+\end{figure*}
 
 Visualizations listed in priority order
 \begin{enumerate}
