@@ -190,14 +190,17 @@ Compute $\widetilde \theta_{k+1}$ and update $\Sigma_x$ and $\Sigma_y$ by stocha
 
 \subsection{Training}%
 \label{sub:training}
-Both training of the input model and the SMCL were performed on an air quality database, split into training (2020) and validation (January - XXX 2021) sets.
-Each is composed of week-long hourly records associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
-Trainings were conducted using the PyTorch framework, on a single GPU.
-\textcolor{red}{Donner taille des inputs, nombre de couches, taille des échantillons, donner la fonction de co\^ut $\mathcal{L}_{\mathrm{inp}}$ (MSE j'imagine), nombre de particules... etc. il ne faut pas qu'il reste de myst\`eres.}
+Both training of the input model and the SMCL were performed on an air quality database, split into training (2020) and validation (January - June 2021) sets.
+Each is composed of $N_{\texttt{sample}}=52$ week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
+We concatenate input variables to obtain a multivariate time series of dimension $8$, for $2$ dimensional outputs.
+
+Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch.
+During it's training, me minimize the cost function $\mathcal{L}_{\mathrm{inp}} = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} (\texttt{model}(u^i_{1:T}) - y^i_{1:T})^2$ for samples $(u^i, y^i)$ of the dataset.
+When approximating the posterior, we use $N=200$ particles.
 
 \subsection{Visualizations}%
 \label{sub:visualizations}
-We first illustrate the ability of our multi-layer model to capture the distribution of future observations. First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by 
+We first illustrate the ability of our multi-layer model to capture the distribution of future observations. First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
 \begin{multline*}
 p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i \\
 \times \int m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
