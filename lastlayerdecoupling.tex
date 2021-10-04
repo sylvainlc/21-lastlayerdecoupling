@@ -195,9 +195,9 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 
 \subsection{Training}%
 \label{sub:training}
-Both training of the input model and the SMCL were performed on an air quality database, split into training (2020) and validation (January - June 2021) sets.
-Each is composed of $N_{\texttt{sample}}=52$ week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
-We concatenate input variables to obtain a multivariate time series of dimension $8$, for $2$ dimensional outputs.
+Both training of the input model and the SMCL were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
+Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
+We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional outputs.
 
 Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch.
 During it's training, me minimize the cost function $\mathcal{L}_{\mathrm{inp}} = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} (\texttt{model}(u^i_{1:T}) - y^i_{1:T})^2$ for samples $(u^i, y^i)$ of the dataset.
@@ -218,8 +218,10 @@ Since particles can no longer be resampled, we approximate their propagation.
 In Figure~\ref{fig:filter_k+24}, we develop particle trajectories, using observations, for 72 time steps (3 days).
 The second part of the graph represent their propagation ; as we model noise in the latent space, the confidence intervals grow steadily before converging in size.
 
-We benchmark our proposed architecture with MC Dropout methods, by implementing a simple LSTM Dropout model.
+We benchmark our proposed architecture with MC Dropout methods, by implementing Dropout layers as described in \cite{Gal2016NIPS} in stead of our noise model.
 In Figure~\ref{fig:boxplot_comparison}, we plot both confidence intervals on a validation sample.
+Despite being based on the same deep learning architecture, the RNN dropout is still largely overconfident, while our proposed model is able to capture the uncertainty.
+Numerical comparison of these confidence intervals can be found in Table~\ref{tab:ci_comparison}.
 
 \begin{figure*}[htpb]
 	\centering
@@ -255,7 +257,7 @@ Visualizations listed in priority order
 \subsection{Evaluations}%
 \label{sub:evaluations}
 
-We compare our model to the LSTM Dropout on Prediction Interval (PI) metrics introduced in \cite{Pearce2018}.
+We compare our model to MC Dropout methods on Prediction Interval (PI) metrics introduced in \cite{Pearce2018}.
 Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$, we compute the Prediction Interval Coverage Probability (PICP) and the Mean Prediction Interval Width as:
 
 \begin{align*}
@@ -266,14 +268,14 @@ Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$,
 \begin{table}[htpb]
 	\centering
 	\caption{Benchmark of models on PI metrics introduced in \cite{Pearce2018}.}
-	\label{tab:label}
+	\label{tab:ci_comparison}
 	\begin{tabular}{lll}
 		\toprule
 		             & PICP              & MPIW               \\
 		\toprule
 		Ours         & $0.99 \pm 0.0002$ & $0.596 \pm 0.0040$ \\
-		LSTM Dropout & $0.23 \pm 0.016$  & $0.195 \pm 0.0011$ \\
-		LSTM Dropout & $0.95 \pm 0.0102$ & $2.330 \pm 0.0535$ \\
+		MC Dropout & $0.23 \pm 0.016$  & $0.195 \pm 0.0011$ \\
+		MC Dropout & $0.95 \pm 0.0102$ & $2.330 \pm 0.0535$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
