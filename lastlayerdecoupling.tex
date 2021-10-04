@@ -227,7 +227,7 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 	\centering
 	\includegraphics[width=\linewidth]{filter_kp1_hum.png}
 	\includegraphics[width=\linewidth]{filter_kp1_co2.png}
-	\caption{Prediction of humidity (top) and CO2 (bottom) given previous observations. Insert explanation about boxplots.}%
+	\caption{Prediction of humidity (top) and CO2 (bottom) given previous observations. At each time step, we compute the $N$ predictions associated with current particles, and plot their distributions as boxplot. The box extends from the lower to upper quartile values of the predictions, while the whiskers encloses points below 1.5 time the Interquartile Range.}%
 	\label{fig:filter_k+1}
 \end{figure*}
 
@@ -235,14 +235,14 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 	\centering
 	\includegraphics[width=\linewidth]{filter_kp24_hum.png}
 	\includegraphics[width=\linewidth]{filter_kp24_co2.png}
-	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<72$) and without ($t > 72$).}%
+	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<72$) and without ($t > 72$). Since re sampling of particles is not longer available, the uncertainty grows.}%
 	\label{fig:filter_k+24}
 \end{figure*}
 
 \begin{figure*}[htpb]
 	\centering
 	\includegraphics[width=\linewidth]{boxplot_comparison.png}
-	\caption{Boxplot comparison between SMCL and LSTM Dropout}%
+	\caption{Comparison of confidence intervals and averaged prediction for SMC and MC dropout methods, on a validation sample. For clarity we only display 2 consecutive days, for humidity estimation.}
 	\label{fig:boxplot_comparison}
 \end{figure*}
 
