@@ -5,8 +5,10 @@
 \documentclass{article}
 \usepackage{spconf,amsmath,graphicx,xcolor}
 \usepackage{hyperref}
+\usepackage{bbold}
 \usepackage{amsfonts}
 \usepackage[ruled,vlined]{algorithm2e}
+\usepackage{booktabs}
 \usepackage{graphicx}
 \graphicspath{ {./images/}  }
 
@@ -206,7 +208,7 @@ p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i \\
 \times \int m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
 \end{multline*}
 where $m_{\widehat\theta,\widehat\varphi}$ is transition density of the hidden state and $g_{\widehat\theta}$ is the density of the observation given the hidden state in the model described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$, where the integral is replaced by sampling through the model $m_{\widehat\theta,\widehat\varphi}$.
-\textcolor{red}{On peut ajouter un tableau sur un paquet d'échantillons de test (100 par exemple) en comptant le nombre de fois où la vérité tombe dans l'intervalle : moyenne et variance de cette quantité?}
+Additionally, evaluations of the quality of predicted confidence intervals are presented in Section~\ref{sub:evaluations}.
 
 Although predictions given the previous time step provide good performance, its application is limited to online building management to monitor houly air quality. We seize this opportunity to explore longer range prediction.
 Since particles can no longer be resampled, we approximate their propagation.
@@ -249,6 +251,29 @@ Visualizations listed in priority order
 
 \subsection{Evaluations}%
 \label{sub:evaluations}
+
+We compare our model to the LSTM Dropout on Prediction Interval (PI) metrics introduced in \cite{Pearce2018}.
+Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$, we compute the Prediction Interval Coverage Probability (PICP) and the Mean Prediction Interval Width as:
+
+\begin{align*}
+	PICP & = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \\
+	MPIW & = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t
+\end{align*}
+
+\begin{table}[htpb]
+	\centering
+	\caption{Benchmark of models on PI metrics introduced in \cite{Pearce2018}.}
+	\label{tab:label}
+	\begin{tabular}{lll}
+		\toprule
+		& PICP        & MPIW                   \\
+		\toprule
+		Ours   & $0.99 \pm 0.0002$ & $0.596 \pm 0.0040$  \\
+		LSTM Dropout &            $0.23 \pm 0.016$  & $0.195 \pm 0.0011$                        \\
+		LSTM Dropout &  $0.95 \pm 0.0102$           & $2.330 \pm 0.0535$ \\
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 Evaluations listed in priority order
 \begin{enumerate}
