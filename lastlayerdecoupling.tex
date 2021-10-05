@@ -94,7 +94,7 @@ Our uncertainty estimation layer can thus be built on top of an existing, alread
 \label{sub:proposed_architecture}
 
 Our proposed model can be decomposed into two decoupled blocks.
-An input model $h_\varphi$ is responsible for extracting relevant features from the input time series. Then, the final hidden states of this network are fed to a Sequential Monte Carlo Layer (SMCL), based on a plain RNN, to design a generative model and allow uncertainty estimation.
+An input model $h_\varphi$ is responsible for extracting relevant features from the input time series. Then, the final hidden states of this network are fed to a state space layer, based on a plain RNN, to design a generative model and allow uncertainty estimation.
 
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$. Let $T\ge 1$ be a given time horizon. We consider the regression task associated with observations $Y_{1:T}$ and inputs $U_{1:T}$, and denote by $X_{1:T}$ the hidden states of the model. For all $t\geq 1$, the model is:
 \begin{equation*}
@@ -115,7 +115,7 @@ $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
 where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
-The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\widehat\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of  the SMCL layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
+The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\widehat\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of  the state space  layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
 \subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
@@ -126,7 +126,7 @@ In this paper we use Fisher's identity to propose a Monte Carlo extimator of the
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
 \end{equation}
-where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this paper. A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
+where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this paper. %A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
 Particle smoothing algorithms are simulation based procedures used to approximate recursively such expectations, see for instance \cite{} and the references therein.
 %This is a challenging issue as more and more practical cases are modeled using high dimensional state spaces (which means high dimensional integrals in \eqref{eq:def:smoothing}) and produce huge data sets (which means that $n$ is large and implies great storage and computational costs). Online parameter inference, which computes new parameter estimates on-the-fly as observations are received, also implies additional computational constraints which rules out a vast majority of standard maximum likelihood procedures. This chapter highlights some recent results on the analysis of the approximation of smoothing distributions using Sequential Monte Carlo (SMC) methods and their applications to (online) parameter inference.
 %Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
@@ -135,20 +135,19 @@ At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_
 %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$,
 %The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}.
 Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Poor man's smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO} and its recent extensions \cite{}.
+Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO} and its recent extensions \cite{}. 
 %Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
 %\begin{align*}
 %	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
 %\end{align*}
 %The Poor man's smoother
-
-Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
+Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. %In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
 %\begin{align*}
 %	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
 %	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
 %	                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
 %\end{align*}
-During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
+%During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
 
 %\begin{algorithm}
 %	\KwIn{$Y_{1:T},  U_{1:T}, \widetilde U_{1:T}$, initial estimates $\varphi$, $\theta$}
@@ -193,7 +192,7 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 
 \subsection{Training}%
 \label{sub:training}
-Both training of the input model and the SMCL were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
+Both training of the input model and the Sequential Monte Carlo Layer (SMCL) were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
 Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional output.
 
