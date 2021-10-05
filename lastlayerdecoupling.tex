@@ -48,7 +48,7 @@
 \begin{abstract}
 	As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is ever so challenging.
 	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
-	In this paper, we demonstrate how uncertainty can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and uncertainty quantification. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} and humidity levels.
+	In this paper, we demonstrate how predictive distributions can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and design of generative models. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} and humidity levels.
 	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on predictions.
 \end{abstract}
 
@@ -69,10 +69,10 @@ These recurrent architectures are able to approximate complex nonlinear time ser
 Several architectures inspired by variational inference emerged by considering latent states as random variables and approximating the posterior.
 The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
 Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
-Similarly, introducing random variables directly into a neural network's weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
+Similarly, introducing random variables directly into a neural network weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
 In \cite{Blundell2015}, weights are considered as distributions instead of vector values, allowing the network to make more reasonable predictions about unseen data.
 
-Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as it's training mechanism.
+Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as its training mechanism.
 In contrast, Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by adding a single non parametric Dropout layer during both training and evaluation tasks, producing variable predictions from a single trained model, see \cite{Gal2016}.
 These results were later extended to recurrent architectures in \cite{Gal2016NIPS}.
 In the following years, MC Dropout methods have been applied in many industrial fields, such as anomaly detection (\cite{Zhu2017DeepAC}), flight delay prediction (\cite{Vandal2018}) or molecular simulations (\cite{Wen2020UncertaintyQI}).
@@ -80,10 +80,8 @@ Alternatively, ensemble methods consists in training distinct networks to obtain
 However, these frequentist approaches fail to guarantee proper calibration of the model, as highlighted by \cite{ashukha2020pitfalls}, and suffer various limitations, see \cite{Fong2020}.
 
 In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages: representation learning and uncertainty estimation.
-Their experiments indicate that the latter should be limited to the last layers of the model, as introducing randomness in the entire network increases complexity without offering much better results.
-
-However, the benchmarked methods for uncertainty estimation cannot be applied in a time series context, as latent states are dependant.
-Instead, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural network to tackle variable sequential problems, see \cite{Ma2020}.
+Their experiments indicate that the latter should be limited to the last layers of the model, as introducing randomness in the entire network increases complexity without offering much better results. However, this method is restricted to independent and identically distributed data and cannot be applied in a time series context.
+Instead, we propose to explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see \cite{Ma2020}.
 We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
 Particle filters have also proven reliable in other fields, such as presented in \cite{Liu2020LSTMPF} for object tracking.
 
@@ -99,7 +97,7 @@ Our uncertainty estimation layer can thus be built on top of an existing, alread
 \label{sub:proposed_architecture}
 
 Our proposed model can be decomposed into two decoupled blocks.
-An input model $h_\varphi$ is responsible for extracting relevant features from the input time series. Then, the final hidden states of this network are fed to a Sequential Monte Carlo Layer (SMCL), based on a plain RNN, to design a generative model and allow uncertainty estimation.
+An input model $h_\varphi$ is responsible for extracting relevant features from the input time series. Then, the final hidden states of this network are fed to a state space layer, based on a plain RNN, to design a generative model and allow uncertainty estimation.
 
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$. Let $T\ge 1$ be a given time horizon. We consider the regression task associated with observations $Y_{1:T}$ and inputs $U_{1:T}$, and denote by $X_{1:T}$ the hidden states of the model. For all $t\geq 1$, the model is:
 \begin{equation*}
@@ -120,7 +118,7 @@ $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
 where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
-The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\widehat\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of  the SMCL layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
+The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\widehat\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of  the state space  layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
 \subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
@@ -131,7 +129,7 @@ In this paper we use Fisher's identity to propose a Monte Carlo extimator of the
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
 \end{equation}
-where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this paper. A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
+where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this paper. %A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
 Particle smoothing algorithms are simulation based procedures used to approximate recursively such expectations, see for instance \cite{} and the references therein.
 %This is a challenging issue as more and more practical cases are modeled using high dimensional state spaces (which means high dimensional integrals in \eqref{eq:def:smoothing}) and produce huge data sets (which means that $n$ is large and implies great storage and computational costs). Online parameter inference, which computes new parameter estimates on-the-fly as observations are received, also implies additional computational constraints which rules out a vast majority of standard maximum likelihood procedures. This chapter highlights some recent results on the analysis of the approximation of smoothing distributions using Sequential Monte Carlo (SMC) methods and their applications to (online) parameter inference.
 %Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
@@ -140,20 +138,19 @@ At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_
 %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$,
 %The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}.
 Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Poor man's smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO} and its recent extensions \cite{}.
+Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO} and its recent extensions \cite{}. 
 %Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
 %\begin{align*}
 %	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
 %\end{align*}
 %The Poor man's smoother
-
-Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
+Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. %In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
 %\begin{align*}
 %	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
 %	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
 %	                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
 %\end{align*}
-During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
+%During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
 
 %\begin{algorithm}
 %	\KwIn{$Y_{1:T},  U_{1:T}, \widetilde U_{1:T}$, initial estimates $\varphi$, $\theta$}
@@ -198,22 +195,23 @@ During the estimation of $\theta$, the input model is frozen, i.e. we stop gradi
 
 \subsection{Training}%
 \label{sub:training}
-Both training of the input model and the SMCL were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
+Both training of the input model and the Sequential Monte Carlo Layer (SMCL) were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
 Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional output.
 
-Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch.
-During it's training, me minimize the cost function $\mathcal{L}_{\mathrm{inp}} = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} (\texttt{model}(u^i_{1:T}) - y^i_{1:T})^2$ for samples $(u^i, y^i)$, $1 \leq i \leq N_{\texttt{sample}}$ of the dataset.
-When approximating the posterior, we use $N=200$ particles.
+Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch \textcolor{red}{Mettre un lien vers l'aide Torch ?}.
+During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction of $Y^i_{1:T}$ with the deterministic model.
+In the experiments,  we use $N=200$ particles to train the SMCL.
 
 \subsection{Visualizations}%
 \label{sub:visualizations}
 We first illustrate the ability of our multi-layer model to capture the distribution of future observations. First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
-\begin{multline*}
-	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i \\
-	\times \int m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
-\end{multline*}
-where $m_{\widehat\theta,\widehat\varphi}$ is transition density of the hidden state and $g_{\widehat\theta}$ is the density of the observation given the hidden state in the model described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$, where the integral is replaced by sampling through the model $m_{\widehat\theta,\widehat\varphi}$.
+$$
+	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})\,,
+$$
+%	\times \int p_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
+%\end{multline*}
+where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$  is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$ by sampling through the model of Section~\ref{sub:proposed_architecture}. 
 Additionally, evaluations of the quality of predicted confidence intervals are presented in Section~\ref{sub:evaluations}.
 
 Although predictions given the previous time step provide good performance, its application is limited to online building management to monitor hourly air quality. We seize this opportunity to explore longer range prediction.
@@ -277,13 +275,13 @@ These estimator are then aggregated on the entire validation set, and their mean
 	\end{tabular}
 \end{table}
 
-Evaluations listed in priority order
-\begin{enumerate}
-	\item Compare confidence interval with MC-dropout model (soit LSTM dropout classique, soit en enlevant la derniere couche)
-	\item Compare with ARIMA/classic stat model
-	\item Compare MSE (average on particles) with classic finetuning: sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
-	\item Compare linear SMC with kalman filter, sample under the gaussian law, plot boxplot
-\end{enumerate}
+%Evaluations listed in priority order
+%\begin{enumerate}
+%	\item Compare confidence interval with MC-dropout model (soit LSTM dropout classique, soit en enlevant la derniere couche)
+%	\item Compare with ARIMA/classic stat model
+%	\item Compare MSE (average on particles) with classic finetuning: sample particles for half a week. For the second half, observations are not available at all ; thus we either take the mean of the predictions associated with each particles, or sample from the observation model and take the mean.
+%	\item Compare linear SMC with kalman filter, sample under the gaussian law, plot boxplot
+%\end{enumerate}
 
 \section{Conclusion}%
 \label{sec:conclusion}
