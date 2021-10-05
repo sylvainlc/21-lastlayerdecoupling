@@ -282,6 +282,19 @@ Evaluations listed in priority order
 	\item Compare linear SMC with kalman filter, sample under the gaussian law, plot boxplot
 \end{enumerate}
 
+\section{Conclusion}%
+\label{sec:conclusion}
+
+In this paper, we introduced a decoupled architecture for uncertainty estimation on a time series dataset.
+Our deep neural network backbone is responsible for extracting high level features, while particle filtering allows modelling recurrent non linear uncertainty.
+Our proposed model improves confidence interval quality, compared to MC Dropout methods, while remaining simple and efficient to train, compared to VI alternatives.
+
+We demonstrate the potential behind combining RNN with latent state space models ; more complex architectures, such as GRU or LSTM cells, are left for future works.
+Likewise, the poor man's smoother could be replaced by faster and more performant alternatives described above.
+
+Our decoupled architecture enables incorporating uncertainty estimation to an already trained network.
+This opens the door to multiple, cheap finetuning of the last layers' parameters and noise estimations, from a global pretraining.
+For our application, this could translate in a generic training of the input model on an entire year of weather and building records, followed by season specific finetunings.
 
 % Below is an example of how to insert images. Delete the ``\vspace'' line,
 % uncomment the preceding line ``\centerline...'' and replace ``imageX.ps''
