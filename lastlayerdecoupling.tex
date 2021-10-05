@@ -134,7 +134,7 @@ The auxiliary particle filter introduced in \cite{Jun1998} produces first recurs
 At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_{\ell=1}^N$ approximate the filtering distribution at time $t$, i.e. the conditional distribution of $X_t$ given $Y_{0:t}$.
 %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$,
 %The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}.
-Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Poor man's smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
+Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
 Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO} and its recent extensions \cite{}. 
 %Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
 %\begin{align*}
@@ -168,11 +168,11 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 %\end{algorithm}
 
 \begin{algorithm}
-	\KwIn{Observations and inputs $(Y^k_{1:T},U^k_{1:T})_{k=1}^M$. Initial estimates of $\varphi$, $\theta$.}
+	\KwIn{Observations and inputs $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$. Initial estimates of $\varphi$, $\theta$.}
 	%\KwOut{$\xi_{1:T}^{1:N}$}
-	Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with  loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^m$\;
+	Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with  loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$\;
 	Initialize $\widetilde \theta_0 = \widehat \theta$, $\Sigma_x$ and $\Sigma_y$\;
-	\For{each batch $1\leq k\leq M$}{
+	\For{each batch $1\leq k\leq N_{\texttt{sample}}$}{
 		Compute a SMC estimate $\widehat S_k^N$ of the score \eqref{eq:grad_ll}\;
 		Compute $\widetilde \theta_{k+1}$ and update $\Sigma_x$ and $\Sigma_y$ by stochastic gradient descent using $\widehat S_k^N$\;
 	}
@@ -192,13 +192,17 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 
 \subsection{Training}%
 \label{sub:training}
-Both training of the input model and the Sequential Monte Carlo Layer (SMCL) were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
+{\bf Data.} Both training of the input model and the Sequential Monte Carlo Layer (SMCL) were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
 Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional output.
 
-Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch \textcolor{red}{Mettre un lien vers l'aide Torch ?}.
+{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch \textcolor{red}{Mettre un lien vers l'aide Torch ?}.
 During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction of $Y^i_{1:T}$ with the deterministic model.
-In the experiments,  we use $N=200$ particles to train the SMCL.
+
+{\bf Sequential Monte Carlo layer.} In the experiments,  we use $N=200$ particles to train the SMCL. To highlight the efficiency of the last layer state space model we implemented a simple particle smoothing algorithm to approximate \eqref{eq:grad_ll}. We used a bootstrap filter where particles are sampled from the prior model and weighted with the observation model. We used the pasth-space smoother which means, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$,
+$$
+\widehat S_k^N = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,.
+$$   
 
 \subsection{Visualizations}%
 \label{sub:visualizations}
@@ -223,23 +227,23 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 
 \begin{figure*}[htpb]
 	\centering
-	\includegraphics[width=\linewidth]{filter_kp1_hum.png}
-	\includegraphics[width=\linewidth]{filter_kp1_co2.png}
+	\includegraphics[width=.8\linewidth]{filter_kp1_hum.png}
+	\includegraphics[width=.8\linewidth]{filter_kp1_co2.png}
 	\caption{Prediction of humidity (top) and CO2 (bottom) given previous observations. At each time step, we compute the $N$ predictions associated with current particles, and plot their distributions as boxplot. The box extends from the lower to upper quartile values of the predictions, while the whiskers encloses points below 1.5 time the Interquartile Range.}%
 	\label{fig:filter_k+1}
 \end{figure*}
 
 \begin{figure*}[htpb]
 	\centering
-	\includegraphics[width=\linewidth]{filter_kp24_hum.png}
-	\includegraphics[width=\linewidth]{filter_kp24_co2.png}
+	\includegraphics[width=.8\linewidth]{filter_kp24_hum.png}
+	\includegraphics[width=.8\linewidth]{filter_kp24_co2.png}
 	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<72$) and without ($t > 72$). Since re sampling of particles is not longer available, the uncertainty grows.}%
 	\label{fig:filter_k+24}
 \end{figure*}
 
 \begin{figure*}[htpb]
 	\centering
-	\includegraphics[width=\linewidth]{boxplot_comparison.png}
+	\includegraphics[width=.8\linewidth]{boxplot_comparison.png}
 	\caption{Comparison of confidence intervals and averaged prediction for SMC and MC dropout methods, on a validation sample. For clarity we only display 2 consecutive days, for humidity estimation.}
 	\label{fig:boxplot_comparison}
 \end{figure*}
