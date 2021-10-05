@@ -264,15 +264,15 @@ These estimator are then aggregated on the entire validation set, and their mean
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of PI metrics  of our model and the LSTM Dropout. Mean values of the estimator on the validation set are displayed, along with their variance.}
+	\caption{Comparison of PI metrics of our model and the LSTM Dropout. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Particles are propagated with access to the observations for 5 days, and evaluated on the two following days without. Mean values of the estimator on the validation set are displayed, along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{lll}
 		\toprule
-		             & PICP              & MPIW               \\
+		                                    & PICP              & MPIW               \\
 		\toprule
-		Ours         & $0.99 \pm 0.0002$ & $0.596 \pm 0.0040$ \\
-		MC Dropout & $0.23 \pm 0.016$  & $0.195 \pm 0.0011$ \\
-		MC Dropout & $0.95 \pm 0.0102$ & $2.330 \pm 0.0535$ \\
+		Ours                                & $0.91 \pm 0.0204$ & $1.600 \pm 0.1263$ \\
+		MC Dropout $p_{\texttt{drop}}=0.15$ & $0.23 \pm 0.016$  & $0.195 \pm 0.0011$ \\
+		MC Dropout $p_{\texttt{drop}}=0.3$  & $0.28 \pm 0.0230$ & $0.258 \pm 0.0043$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
