@@ -196,18 +196,19 @@ Both training of the input model and the Sequential Monte Carlo Layer (SMCL) wer
 Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional output.
 
-Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch.
-During it's training, me minimize the cost function $\mathcal{L}_{\mathrm{inp}} = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} (\texttt{model}(u^i_{1:T}) - y^i_{1:T})^2$ for samples $(u^i, y^i)$, $1 \leq i \leq N_{\texttt{sample}}$ of the dataset.
-When approximating the posterior, we use $N=200$ particles.
+Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch \textcolor{red}{Mettre un lien vers l'aide Torch ?}.
+During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction of $Y^i_{1:T}$ with the deterministic model.
+In the experiments,  we use $N=200$ particles to train the SMCL.
 
 \subsection{Visualizations}%
 \label{sub:visualizations}
 We first illustrate the ability of our multi-layer model to capture the distribution of future observations. First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
-\begin{multline*}
-	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i \\
-	\times \int m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
-\end{multline*}
-where $m_{\widehat\theta,\widehat\varphi}$ is transition density of the hidden state and $g_{\widehat\theta}$ is the density of the observation given the hidden state in the model described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$, where the integral is replaced by sampling through the model $m_{\widehat\theta,\widehat\varphi}$.
+$$
+	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})\,,
+$$
+%	\times \int p_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
+%\end{multline*}
+where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$  is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$ by sampling through the model of Section~\ref{sub:proposed_architecture}. 
 Additionally, evaluations of the quality of predicted confidence intervals are presented in Section~\ref{sub:evaluations}.
 
 Although predictions given the previous time step provide good performance, its application is limited to online building management to monitor hourly air quality. We seize this opportunity to explore longer range prediction.
