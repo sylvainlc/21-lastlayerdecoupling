@@ -212,12 +212,12 @@ $$
 $$
 %	\times \int p_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
 %\end{multline*}
-where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$  is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$ by sampling through the model of Section~\ref{sub:proposed_architecture}. 
+where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$  is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display empirical boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$ by sampling through the model of Section~\ref{sub:proposed_architecture}. 
 Additionally, evaluations of the quality of predicted confidence intervals are presented in Section~\ref{sub:evaluations}.
 
-Although predictions given the previous time step provide good performance, its application is limited to online building management to monitor hourly air quality. We seize this opportunity to explore longer range prediction.
-Since particles can no longer be resampled, we approximate their propagation.
-In Figure~\ref{fig:filter_k+24}, we develop particle trajectories, using observations, for 72 time steps (3 days).
+Although predictions given the previous time step provide good performance, it is limited as many applications require multi-steps forecasts, suh as online building management to maintain air quality. We seize this opportunity to explore longer range predictions by sampling approximately from $\sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+p}|\xi_t^i,U_{t+1:t+p})$ for $p>1$  by sampling through the model of Section~\ref{sub:proposed_architecture}.
+%Since particles can no longer be resampled, we approximate their propagation.
+The results are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 48$ (2 days).
 The second part of the graph represent their propagation ; as we model noise in the latent space, the confidence intervals grow steadily before converging in size.
 
 We benchmark our proposed architecture with MC Dropout methods, by implementing Dropout layers as described in \cite{Gal2016NIPS} in stead of our noise model.
@@ -254,16 +254,14 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 We compare our model to MC Dropout methods on Prediction Interval (PI) metrics introduced in \cite{Pearce2018}.
 Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$, we compute the Prediction Interval Coverage Probability (PICP) and the Mean Prediction Interval Width as:
 
-\begin{align}
-	PICP & = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \label{eq:pi_picp} \\
-	MPIW & = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t \label{eq:pi_mpiw}
-\end{align}
-
+$$
+\mathrm{PICP}  = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \, \quad \mathrm{MPIW}  = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t\,.
+$$
 These estimator are then aggregated on the entire validation set, and their mean and variance are displayed in Table~\ref{tab:ci_comparison}.
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of PI metrics \ref{eq:pi_picp}, \ref{eq:pi_mpiw} of our model and the LSTM Dropout. Mean values of the estimator on the validation set are displayed, along with their variance.}
+	\caption{Comparison of PI metrics  of our model and the LSTM Dropout. Mean values of the estimator on the validation set are displayed, along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{lll}
 		\toprule
