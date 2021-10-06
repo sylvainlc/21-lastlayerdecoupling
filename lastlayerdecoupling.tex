@@ -1,6 +1,6 @@
 % Template for ICASSP-2021 paper; to be used with:
-%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
-%          IEEEbib.bst - IEEE bibliography style file.
+% spconf.sty - ICASSP/ICIP LaTeX style file, and
+% IEEEbib.bst - IEEE bibliography style file.
 % --------------------------------------------------------------------------
 \documentclass{article}
 \usepackage{spconf,amsmath,graphicx,xcolor}
@@ -10,7 +10,7 @@
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage{booktabs}
 \usepackage{graphicx}
-\graphicspath{ {./images/}  }
+\graphicspath{ {./images/} }
 
 \title{Last layer state space model}
 %
@@ -31,11 +31,11 @@
 % Two addresses (uncomment and modify for two-address case).
 % ----------------------------------------------------------
 %\twoauthors
-%  {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
+% {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
 %	{School A-B\\
 %	Department A-B\\
 %	Address A-B}
-%  {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
+% {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
 %	while at ...}}
 %	{School C-D\\
 %	Department C-D\\
@@ -48,7 +48,7 @@
 \begin{abstract}
 	As sequential neural architectures become deeper and more complex, estimating the uncertainty of their predictions is ever so challenging.
 	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
-	In this paper, we demonstrate how predictive distributions can be estimated on top of an existing and trained neural network, combining a state space-based last  layer and  Sequential Monte Carlo methods. This approach allows to separate representation learning and design of generative models. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} and humidity levels.
+	In this paper, we demonstrate how predictive distributions can be estimated on top of an existing and trained neural network, combining a state space-based last layer and Sequential Monte Carlo methods. This approach allows to separate representation learning and design of generative models. We apply our proposed methodology for the estimation of air quality in office buildings, through the hourly prediction of \ensuremath{\mathrm{CO_2}} and humidity levels.
 	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on predictions.
 \end{abstract}
 
@@ -105,7 +105,7 @@ In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use th
 	\begin{aligned}
 		\widetilde U_t & = h_\varphi(U_t)                             & \text{input model}        \\
 		X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model}        \\
-		Y_t            & = f_\theta(X_t)       + \epsilon_t           & \text{observation model,} \\
+		Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model,} \\
 	\end{aligned}
 	\right.
 \end{equation*}
@@ -113,20 +113,20 @@ where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i
 
 \subsection{Input model}%
 \label{sub:input_model}
-Extracting high-level features for the initial inputs can be done efficiently using several multi-layer neural network architectures.  In this paper, we chose a multi-layered GRU network such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
+Extracting high-level features for the initial inputs can be done efficiently using several multi-layer neural network architectures. In this paper, we chose a multi-layered GRU network such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
 $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
-where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
+where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
 The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model.
 This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
-The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameter $\widehat \theta$ is used as an initial estimate for the inference of  the state space  layer.
+The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameter $\widehat \theta$ is used as an initial estimate for the inference of the state space layer.
 All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
 \subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 
-Estimating the parameter $\theta$,  $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the log likelihood of the observations is not available explicitly since, it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
+Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the log likelihood of the observations is not available explicitly since, it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
 In this paper we use Fisher's identity to propose a Monte Carlo extimator of the score function:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
@@ -149,9 +149,9 @@ Using the model provided in Section~\ref{sub:proposed_architecture}, estimating 
 %The Poor man's smoother
 Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. %In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
 %\begin{align*}
-%	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
-%	                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
-%	                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
+%	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y| \\
+%	 & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i)) \\
+%	 & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
 %\end{align*}
 %During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
 
@@ -171,7 +171,7 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 %\begin{algorithm}
 %	\KwIn{Observations and inputs $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$. Initial estimates of $\varphi$, $\theta$.}
 %	%\KwOut{$\xi_{1:T}^{1:N}$}
-%	Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with  loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$\;
+%	Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$\;
 %	Initialize $\widetilde \theta_0 = \widehat \theta$, $\Sigma_x$ and $\Sigma_y$\;
 %	\For{each batch $1\leq k\leq N_{\texttt{sample}}$}{
 %		Compute a SMC estimate $\widehat S_k^N$ of the score \eqref{eq:grad_ll}\;
@@ -196,12 +196,12 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional output.
 
-{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=8$ and a latent dimension of $d_\textnormal{latent}=8$.
+	{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=8$ and a latent dimension of $d_\textnormal{latent}=8$.
 During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with the deterministic model.
 
-{\bf Sequential Monte Carlo layer.} In the experiments,  we use $N=200$ particles to train the SMCL. To highlight the efficiency of the last layer state space model we implemented a simple particle smoothing algorithm to approximate \eqref{eq:grad_ll}. We used a bootstrap filter where particles are sampled from the prior model and weighted with the observation model. We used the pasth-space smoother which means, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$,
+	{\bf Sequential Monte Carlo layer.} In the experiments, we use $N=200$ particles to train the SMCL. To highlight the efficiency of the last layer state space model we implemented a simple particle smoothing algorithm to approximate \eqref{eq:grad_ll}. We used a bootstrap filter where particles are sampled from the prior model and weighted with the observation model. We used the pasth-space smoother which means, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$,
 $$
-\widehat S_k^N = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,.
+	\widehat S_k^N = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,.
 $$
 
 \subsection{Visualizations}%
@@ -212,10 +212,10 @@ $$
 $$
 %	\times \int p_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
 %\end{multline*}
-where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$  is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display empirical boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$ by sampling through the model of Section~\ref{sub:proposed_architecture}.
+where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$ is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display empirical boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$ by sampling through the model of Section~\ref{sub:proposed_architecture}.
 Additionally, evaluations of the quality of predicted confidence intervals are presented in Section~\ref{sub:evaluations}.
 
-Although predictions given the previous time step provide good performance, it is limited as many applications require multi-steps forecasts, suh as online building management to maintain air quality. We seize this opportunity to explore longer range predictions by sampling approximately from $\sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+p}|\xi_t^i,U_{t+1:t+p})$ for $p>1$  by sampling through the model of Section~\ref{sub:proposed_architecture}.
+Although predictions given the previous time step provide good performance, it is limited as many applications require multi-steps forecasts, suh as online building management to maintain air quality. We seize this opportunity to explore longer range predictions by sampling approximately from $\sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+p}|\xi_t^i,U_{t+1:t+p})$ for $p>1$ by sampling through the model of Section~\ref{sub:proposed_architecture}.
 %Since particles can no longer be resampled, we approximate their propagation.
 The results are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 48$ (2 days).
 The second part of the graph represent their propagation ; as we model noise in the latent space, the confidence intervals grow steadily before converging in size.
@@ -256,7 +256,7 @@ We compare our model to MC Dropout methods on Prediction Interval (PI) metrics i
 Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$, we compute the Prediction Interval Coverage Probability (PICP) and the Mean Prediction Interval Width as:
 
 $$
-\mathrm{PICP}  = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \, \quad \mathrm{MPIW}  = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t\,.
+	\mathrm{PICP} = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \, \quad \mathrm{MPIW} = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t\,.
 $$
 These estimator are then aggregated on the entire validation set, and their mean and variance are displayed in Table~\ref{tab:ci_comparison}.
 
@@ -266,10 +266,10 @@ These estimator are then aggregated on the entire validation set, and their mean
 	\label{tab:ci_comparison}
 	\begin{tabular}{lll}
 		\toprule
-		                                    & PICP              & MPIW               \\
+		                             & PICP              & MPIW               \\
 		\toprule
-		Ours                                & $0.91 \pm 0.0204$ & $1.600 \pm 0.1263$ \\
-		MCD $p_{\texttt{drop}}=0.15$ & $0.32 \pm 0.0099$  & $0.383 \pm 0.0013$ \\
+		Ours                         & $0.91 \pm 0.0204$ & $1.600 \pm 0.1263$ \\
+		MCD $p_{\texttt{drop}}=0.15$ & $0.32 \pm 0.0099$ & $0.383 \pm 0.0013$ \\
 		MCD $p_{\texttt{drop}}=0.3$  & $0.33 \pm 0.0144$ & $0.401 \pm 0.0013$ \\
 		\bottomrule
 	\end{tabular}
@@ -304,24 +304,24 @@ For our application, this could translate in a generic training of the input mod
 %\begin{figure}[htb]
 
 %\begin{minipage}[b]{1.0\linewidth}
-%  \centering
-%  \centerline{\includegraphics[width=8.5cm]{image1}}
-%%  \vspace{2.0cm}
-%  \centerline{(a) Result 1}\medskip
+% \centering
+% \centerline{\includegraphics[width=8.5cm]{image1}}
+%% \vspace{2.0cm}
+% \centerline{(a) Result 1}\medskip
 %\end{minipage}
 %%
 %\begin{minipage}[b]{.48\linewidth}
-%  \centering
-%  \centerline{\includegraphics[width=4.0cm]{image3}}
-%%  \vspace{1.5cm}
-%  \centerline{(b) Results 3}\medskip
+% \centering
+% \centerline{\includegraphics[width=4.0cm]{image3}}
+%% \vspace{1.5cm}
+% \centerline{(b) Results 3}\medskip
 %\end{minipage}
 %\hfill
 %\begin{minipage}[b]{0.48\linewidth}
-%  \centering
-%  \centerline{\includegraphics[width=4.0cm]{image4}}
-%%  \vspace{1.5cm}
-%  \centerline{(c) Result 4}\medskip
+% \centering
+% \centerline{\includegraphics[width=4.0cm]{image4}}
+%% \vspace{1.5cm}
+% \centerline{(c) Result 4}\medskip
 %\end{minipage}
 %%
 %\caption{Example of placing a figure with experimental results.}
