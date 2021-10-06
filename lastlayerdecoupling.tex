@@ -118,12 +118,15 @@ $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
 where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and  $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
-The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model. This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$. Then, the input model weights $\widehat\varphi$ are kept fixed to build the first features extraction for the initial inputs. The parameter $ \widehat \theta$ is used as an initial estimate for the inference of  the state space  layer. All details on the training of the input model are postponed to Section~\ref{sec:exp}.
+The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model.
+This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
+The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameter $\widehat \theta$ is used as an initial estimate for the inference of  the state space  layer.
+All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
 \subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 
-Estimating the parameter $\theta$,  $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly since  it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
+Estimating the parameter $\theta$,  $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the log likelihood of the observations is not available explicitly since, it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
 In this paper we use Fisher's identity to propose a Monte Carlo extimator of the score function:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
@@ -152,43 +155,37 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 %\end{align*}
 %During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
 
+% \begin{algorithm}
+% 	\KwIn{$Y_{1:T}, \widetilde U_{1:T}$}
+% 	\KwOut{$\xi_{1:T}^{1:N}$}
+% 	$\xi_0^i \gets \eta^i$\;
+% 	\For{$t \gets 0$ \KwTo $T$}{
+% 		$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
+% 		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
+% 		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
+% 	}
+% 	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$.}
+% 	\label{algo:particle_filter}
+% \end{algorithm}
+
 %\begin{algorithm}
-%	\KwIn{$Y_{1:T},  U_{1:T}, \widetilde U_{1:T}$, initial estimates $\varphi$, $\theta$}
+%	\KwIn{Observations and inputs $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$. Initial estimates of $\varphi$, $\theta$.}
 %	%\KwOut{$\xi_{1:T}^{1:N}$}
-%Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with a standard loss\;
-%Initialize $\widetilde \theta_0 = \widehat \theta$\;
-%\For{each iteration $p\geq 1$}{
-%Update $\widetilde \theta_p$ by stochastic gradient descent replacing \eqref{eq:grad_ll} by its SMC estimate\;
-%}
-%	$\xi_0^i \gets \eta^i$\;
-%	\For{$t \gets 0$ \KwTo $T$}{
-%		$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
-%		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
-%		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
+%	Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with  loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$\;
+%	Initialize $\widetilde \theta_0 = \widehat \theta$, $\Sigma_x$ and $\Sigma_y$\;
+%	\For{each batch $1\leq k\leq N_{\texttt{sample}}$}{
+%		Compute a SMC estimate $\widehat S_k^N$ of the score \eqref{eq:grad_ll}\;
+%		Compute $\widetilde \theta_{k+1}$ and update $\Sigma_x$ and $\Sigma_y$ by stochastic gradient descent using $\widehat S_k^N$\;
 %	}
-%	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$.}
-%	\label{algo:particle_filter}
+%	%$\xi_0^i \gets \eta^i$\;
+%	%\For{$t \gets 0$ \KwTo $T$}{
+%	%	$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
+%	%	$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
+%	%	$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
+%	%}
+%	\caption{Estimation of the two blocks.}
+%	\label{algo:allsteps}
 %\end{algorithm}
-
-\begin{algorithm}
-	\KwIn{Observations and inputs $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$. Initial estimates of $\varphi$, $\theta$.}
-	%\KwOut{$\xi_{1:T}^{1:N}$}
-	Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with  loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$\;
-	Initialize $\widetilde \theta_0 = \widehat \theta$, $\Sigma_x$ and $\Sigma_y$\;
-	\For{each batch $1\leq k\leq N_{\texttt{sample}}$}{
-		Compute a SMC estimate $\widehat S_k^N$ of the score \eqref{eq:grad_ll}\;
-		Compute $\widetilde \theta_{k+1}$ and update $\Sigma_x$ and $\Sigma_y$ by stochastic gradient descent using $\widehat S_k^N$\;
-	}
-	%$\xi_0^i \gets \eta^i$\;
-	%\For{$t \gets 0$ \KwTo $T$}{
-	%	$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
-	%	$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
-	%	$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
-	%}
-	\caption{Estimation of the two blocks.}
-	\label{algo:allsteps}
-\end{algorithm}
-
 
 \section{Experiments}
 \label{sec:exp}
@@ -199,8 +196,8 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
 We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional output.
 
-{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch \textcolor{red}{Mettre un lien vers l'aide Torch ?}.
-During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction of $Y^i_{1:T}$ with the deterministic model.
+{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=8$ and a latent dimension of $d_\textnormal{latent}=8$.
+During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with the deterministic model.
 
 {\bf Sequential Monte Carlo layer.} In the experiments,  we use $N=200$ particles to train the SMCL. To highlight the efficiency of the last layer state space model we implemented a simple particle smoothing algorithm to approximate \eqref{eq:grad_ll}. We used a bootstrap filter where particles are sampled from the prior model and weighted with the observation model. We used the pasth-space smoother which means, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$,
 $$
@@ -224,7 +221,7 @@ The results are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 48$ 
 The second part of the graph represent their propagation ; as we model noise in the latent space, the confidence intervals grow steadily before converging in size.
 
 We benchmark our proposed architecture with MC Dropout methods, by implementing Dropout layers as described in \cite{Gal2016NIPS} in stead of our noise model.
-In Figure~\ref{fig:boxplot_comparison}, we plot both confidence intervals on a validation sample.
+In Figure~\ref{fig:boxplot_comparison}, we plot both confidence intervals on a validation sample, for a dropout value of $p_\textnormal{drop}=0.15$.
 Despite being based on the same deep learning architecture, the RNN dropout is still largely overconfident, while our proposed model is able to capture the uncertainty.
 Numerical comparison of these confidence intervals can be found in Table~\ref{tab:ci_comparison}.
 
@@ -240,7 +237,7 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 	\centering
 	\includegraphics[width=.8\linewidth]{filter_kp24_hum.png}
 	\includegraphics[width=.8\linewidth]{filter_kp24_co2.png}
-	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<96$) and without ($t>96$). Since re sampling of particles is not longer available, the uncertainty grows. As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods.}%
+	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<96$) and without ($t>96$). Since re sampling of particles is not longer available at that point, the uncertainty grows. As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods.}%
 	\label{fig:filter_k+24}
 \end{figure*}
 
@@ -248,7 +245,7 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 	\centering
 	\includegraphics[width=.8\linewidth]{boxplot_comparison_hum.png}
 	\includegraphics[width=.8\linewidth]{boxplot_comparison_co2.png}
-	\caption{Comparison of confidence intervals and averaged prediction for SMC and MC dropout methods, on a validation sample. For clarity we only display 2 consecutive days, for humidity estimation.}
+	\caption{Comparison of confidence intervals and averaged prediction for SMC and MC dropout methods, with $p_\textnormal{drop}=0.15$, on a validation sample. For clarity we only display 2 consecutive days.}
 	\label{fig:boxplot_comparison}
 \end{figure*}
 
@@ -265,15 +262,15 @@ These estimator are then aggregated on the entire validation set, and their mean
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of PI metrics of our model and the LSTM Dropout. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Particles are propagated with access to the observations for 5 days, and evaluated on the two following days without. Mean values of the estimator on the validation set are displayed, along with their variance.}
+	\caption{Comparison of PI metrics of our model and the LSTM Dropout. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Particles are propagated with access to the observations for 5 days, and evaluated on the two following days without. Two version of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{lll}
 		\toprule
 		                                    & PICP              & MPIW               \\
 		\toprule
 		Ours                                & $0.91 \pm 0.0204$ & $1.600 \pm 0.1263$ \\
-		MC Dropout $p_{\texttt{drop}}=0.15$ & $0.32 \pm 0.0099$  & $0.383 \pm 0.0013$ \\
-		MC Dropout $p_{\texttt{drop}}=0.3$  & $0.33 \pm 0.0144$ & $0.401 \pm 0.0013$ \\
+		MCD $p_{\texttt{drop}}=0.15$ & $0.32 \pm 0.0099$  & $0.383 \pm 0.0013$ \\
+		MCD $p_{\texttt{drop}}=0.3$  & $0.33 \pm 0.0144$ & $0.401 \pm 0.0013$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
