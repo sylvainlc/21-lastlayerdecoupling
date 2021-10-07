@@ -221,7 +221,7 @@ The results are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 48$ 
 We benchmark our proposed architecture with MC Dropout methods, by implementing Dropout layers as described in \cite{Gal2016NIPS} in stead of our noise model.
 In Figure~\ref{fig:boxplot_comparison}, we plot both confidence intervals on a validation sample, for a dropout value of $p_\textnormal{drop}=0.15$.
 Despite being based on the same deep learning architecture, the RNN dropout is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
-Numerical comparison of these confidence intervals can be found in Table~\ref{tab:ci_comparison}.
+Numerical comparison of these confidence intervals on the entire validation set can be found in Table~\ref{tab:ci_comparison}.
 
 \begin{figure*}[htpb]
 	\centering
@@ -235,7 +235,7 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 	\centering
 	\includegraphics[width=.7\linewidth]{filter_kp24_hum.png}
 	\includegraphics[width=.7\linewidth]{filter_kp24_co2.png}
-	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<96$) and without ($t>96$). Since re sampling of particles is not longer available at that point, the uncertainty grows. As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods.}%
+	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<96$) and without ($t>96$). Since re sampling of particles is not longer available at that point, the uncertainty grows. As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods. Aggregated results on the entire validation set can be found in Table~\ref{tab:ci_comparison}.}%
 	\label{fig:filter_k+24}
 \end{figure*}
 
@@ -259,7 +259,7 @@ These estimators are then aggregated on the entire validation set, and their mea
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of PI metrics of our model and the LSTM Dropout. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Particles are propagated with access to the observations for 5 days, and predictions are then sampled for the two following days. Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
+	\caption{Comparison of PI metrics of our model and the LSTM Dropout. This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{lll}
 		\toprule
