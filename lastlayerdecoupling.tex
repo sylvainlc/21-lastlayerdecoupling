@@ -61,16 +61,14 @@
 % We believe a deeper understanding of \ensuremath{\mathrm{CO_2}} variations can assist in regulating and reducing HVAC consumption, while improving well being.
 
 Recurrent Neural Networks (RNN) were first introduced as an efficient and convenient architecture to address short time dependencies problems \cite{Mozer1989AFB}.
-They have been consistently improved to develop longer term memory, and optimize their implementations \cite{Bengio1994LearningLD,Hochreiter1997LongSM,Cho2014LearningPR}.
-Current deep learning framework allows stacking arbitrary high number of recurrent layers, whose parameters are estimated by gradient descent through an automated differentiation procedure.
+They have been consistently improved to develop longer term memory, and optimize their implementations \cite{Bengio1994LearningLD,Hochreiter1997LongSM}.%,Cho2014LearningPR}.
+Current deep learning framework allows stacking arbitrary high number of recurrent layers, whose parameters are estimated by gradient descent through an automated differentiation procedure. These recurrent architectures are able to approximate complex nonlinear time series, but suffer from overconfidence when evaluated outside of their training observations. Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation \cite{Hinton1995BayesianLF,MacKay1992}.
 
-These recurrent architectures are able to approximate complex nonlinear time series, but suffer from overconfidence when evaluated outside of their training observations. Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation \cite{Hinton1995BayesianLF,MacKay1992}.
-
-Several architectures inspired by variational inference emerged by considering latent states as random variables and approximating the posterior.
+Several architectures inspired by variational inference emerged by considering latent states as random variables and approximating their posterior distribution.
 The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
 Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
-Similarly, introducing random variables directly into a neural network weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
-In \cite{Blundell2015}, weights are considered as distributions instead of vector values, allowing the network to make more reasonable predictions about unseen data.
+%Similarly, introducing random variables directly into a neural network weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
+In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions on unseen data.
 
 Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as its training mechanism.
 In contrast, Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by adding a single non parametric Dropout layer during both training and evaluation tasks, producing variable predictions from a single trained model, see \cite{Gal2016}.
@@ -141,7 +139,7 @@ At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_
 %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$,
 %The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}.
 Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO} and its recent extensions \cite{}.
+Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO}.
 %Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
 %\begin{align*}
 %	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
@@ -227,24 +225,24 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 
 \begin{figure*}[htpb]
 	\centering
-	\includegraphics[width=.8\linewidth]{filter_kp1_hum.png}
-	\includegraphics[width=.8\linewidth]{filter_kp1_co2.png}
+	\includegraphics[width=.7\linewidth]{filter_kp1_hum.png}
+	\includegraphics[width=.7\linewidth]{filter_kp1_co2.png}
 	\caption{Prediction of humidity (top) and CO2 (bottom) given previous observations. At each time step, we compute the $N$ predictions associated with current particles, and plot their distributions as boxplot. The box extends from the lower to upper quartile values of the predictions, while the whiskers encloses 95\% of the data.}%
 	\label{fig:filter_k+1}
 \end{figure*}
 
 \begin{figure*}[htpb]
 	\centering
-	\includegraphics[width=.8\linewidth]{filter_kp24_hum.png}
-	\includegraphics[width=.8\linewidth]{filter_kp24_co2.png}
+	\includegraphics[width=.7\linewidth]{filter_kp24_hum.png}
+	\includegraphics[width=.7\linewidth]{filter_kp24_co2.png}
 	\caption{Prediction of humidity (top) and CO2 (bottom) given observation ($t<96$) and without ($t>96$). Since re sampling of particles is not longer available at that point, the uncertainty grows. As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods.}%
 	\label{fig:filter_k+24}
 \end{figure*}
 
 \begin{figure*}[htpb]
 	\centering
-	\includegraphics[width=.8\linewidth]{boxplot_comparison_hum.png}
-	\includegraphics[width=.8\linewidth]{boxplot_comparison_co2.png}
+	\includegraphics[width=.7\linewidth]{boxplot_comparison_hum.png}
+	\includegraphics[width=.7\linewidth]{boxplot_comparison_co2.png}
 	\caption{Comparison of confidence intervals and averaged prediction for SMC and MC dropout methods, with $p_\textnormal{drop}=0.15$, on a validation sample. For clarity we only display 2 consecutive days.}
 	\label{fig:boxplot_comparison}
 \end{figure*}
