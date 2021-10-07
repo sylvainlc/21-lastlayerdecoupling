@@ -256,18 +256,20 @@ Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$,
 %	\mathrm{PICP} = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \, \quad \mathrm{MPIW} = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t\,.
 %$$
 These estimators are then aggregated on the entire validation set, and their mean and variance are displayed in Table~\ref{tab:ci_comparison}.
+Our model is able to capture much more data than the benchmarked MC Dropout method, albeit for a higher bias.
+We evaluated RNN Dropout models with multiple values for $p_\textnormal{drop}$, but were not able to obtain confidence interval with increased size.
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of PI metrics of our model and the LSTM Dropout. This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
+	\caption{Comparison of PI metrics and Mean Absolute Error (MAE) of our model and the RNN Dropout. This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
 	\label{tab:ci_comparison}
-	\begin{tabular}{lll}
+	\begin{tabular}{llll}
 		\toprule
-		                             & PICP              & MPIW               \\
+		$(\times 10^{-2})$ & PICP          & MPIW            & MAE           \\
 		\toprule
-		SMCL (ours)                  & $0.91 \pm 0.0204$ & $1.600 \pm 0.1263$ \\
-		MCD $p_{\texttt{drop}}=0.15$ & $0.32 \pm 0.0099$ & $0.383 \pm 0.0013$ \\
-		MCD $p_{\texttt{drop}}=0.3$  & $0.33 \pm 0.0144$ & $0.401 \pm 0.0013$ \\
+		SMCL (ours)        & $91 \pm 2.04$ & $160 \pm 12.63$ & $54 \pm 7.84$ \\
+		MCD $p=0.15$       & $32 \pm 0.99$ & $38.3 \pm 0.13$ & $45 \pm 1.50$ \\
+		MCD $p=0.3$        & $33 \pm 1.44$ & $40.1 \pm 0.13$ & $44 \pm 1.25$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
