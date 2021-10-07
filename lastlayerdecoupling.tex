@@ -18,7 +18,7 @@
 % ---------------
 \name{Max Cohen$^{\star \dagger}$ \qquad Sylvain Le Corff$^{\star}$ \qquad Maurice Charbit$^{\dagger}$ \qquad Gilles Nozière$^{\dagger}$}
 \address{
-	$^{\star}$Samovar, T\'el\'ecom SudParis, d\'epartement CITI, TIPIC, Institut Polytechnique de Paris, Palaiseau, France.\\
+	$^{\star}$Samovar, T\'el\'ecom SudParis, d\'epartement CITI, Institut Polytechnique de Paris, Palaiseau, France.\\
 	$^{\dagger}$Oze Energies, France.
 }
 %
@@ -251,16 +251,15 @@ Numerical comparison of these confidence intervals can be found in Table~\ref{ta
 \label{sub:evaluations}
 
 We compare our model to MC Dropout methods on Prediction Interval (PI) metrics introduced in \cite{Pearce2018}.
-Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$, we compute the Prediction Interval Coverage Probability (PICP) and the Mean Prediction Interval Width as:
-
-$$
-	\mathrm{PICP} = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \, \quad \mathrm{MPIW} = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t\,.
-$$
-These estimator are then aggregated on the entire validation set, and their mean and variance are displayed in Table~\ref{tab:ci_comparison}.
+Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$, we compute the Prediction Interval Coverage Probability (PICP) and the Mean Prediction Interval Width as $\mathrm{PICP} = T^{-1}\sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t)$ and $\mathrm{MPIW} = T^{-1} \sum^{T}_{t=1}(\hat y_U^t - \hat y_L^t)$.
+%$$
+%	\mathrm{PICP} = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \, \quad \mathrm{MPIW} = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t\,.
+%$$
+These estimators are then aggregated on the entire validation set, and their mean and variance are displayed in Table~\ref{tab:ci_comparison}.
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of PI metrics of our model and the LSTM Dropout. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Particles are propagated with access to the observations for 5 days, and evaluated on the two following days without. Two version of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
+	\caption{Comparison of PI metrics of our model and the LSTM Dropout. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Particles are propagated with access to the observations for 5 days, and predictions are then sampled for the two following days. Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{lll}
 		\toprule
@@ -289,11 +288,11 @@ Our deep neural network backbone is responsible for extracting high level featur
 Our proposed model improves confidence interval quality, compared to MC Dropout methods, while remaining simple and efficient to train, compared to VI alternatives.
 
 We demonstrate the potential behind combining RNN with latent state space models ; more complex architectures, such as GRU or LSTM cells, are left for future works.
-Likewise, the poor man's smoother could be replaced by faster and more performant alternatives described above.
+Likewise, the Path-space smoother could be replaced by faster and more performant alternatives described above.
 
 Our decoupled architecture enables incorporating uncertainty estimation to an already trained network.
-This opens the door to multiple, cheap finetuning of the last layers' parameters and noise estimations, from a global pretraining.
-For our application, this could translate in a generic training of the input model on an entire year of weather and building records, followed by season specific finetunings.
+This opens the door to multiple, cheap finetuning of last layers parameters, from a global pretraining.
+%For our application, this could translate in a generic training of the input model on an entire year of weather and building records, followed by season specific finetunings.
 
 % Below is an example of how to insert images. Delete the ``\vspace'' line,
 % uncomment the preceding line ``\centerline...'' and replace ``imageX.ps''
