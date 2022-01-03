@@ -126,7 +126,7 @@ All details on the training of the input model are postponed to Section~\ref{sec
 \label{sub:uncertainty_estimation}
 
 Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the log likelihood of the observations is not available explicitly since, it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
-In this paper we use Fisher's identity to propose a Monte Carlo extimator of the score function:
+In this paper we use Fisher's identity to propose a Monte Carlo estimator of the score function:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
