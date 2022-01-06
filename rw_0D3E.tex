@@ -19,11 +19,25 @@
 \begin{document}
 \maketitle
 
-\begin{itemize}
-	\item Clarifier l'histoire des architectures RNN ; dire qu'on va améliorer le text du papier dans ce sens.
-	\item Remercier pour le papier qu'il propose, qu'il est effectivement en lien avec nos travaux, mais qu'on fait quelques chose de quand même très différent. Assurer que notre papier traite de la seconde option.
-\end{itemize}
+We would like to start by thanking the reviewer for their thorough reading of our paper.
+We took note of the misleading sections they reported, and attempted to improve the global clarity of our work.
 
+In particular, we aimed at clearly separating the definition of both the input model, from the proposed SMC layer.
+As we can chose any sequential architecture for the former, we opted for a multi layered GRU model.
+On the other hand, the SMC layer architecture impacts the computation of the loss ; we chose to settle for a simple RNN cell in order to keep the equations as simple as possible.
+The final model is thus comprised of an input model based on a GRU network, and a SMC layer based on a plain RNN network.
+We modified the conclusion accordingly:
+\begin{quote}
+We demonstrate the potential behind implementing latent space models as a modified RNN cell ;
+more complex architectures, such as the GRU network used in the input model, or LSTM cells, are left for future works.
+\end{quote}
+
+Furthermore, because we introduce a new SMC layer whose computations are not directly differentiable, we need to define a new loss function to approximate the gradient of the model.
+
+We confirm to the reviewer that our proposed architecture uses SMC methods as part of both the model and the loss function, and therefore would like to thank them once again for taking an interest in our work.
+Contrary to the paper they kindly mentioned, \textit{SMC Faster R-CNN: Toward a scene-specialized multi-object detector}, we use particle filters for both training and inference.
+
+\textit{Details about adding validation.}
 
 \bibliographystyle{apalike}
 \bibliography{references}
