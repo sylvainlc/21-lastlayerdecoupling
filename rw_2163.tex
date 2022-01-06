@@ -1,0 +1,32 @@
+\documentclass{article}
+% Packages
+\usepackage{amsmath} % Math environments
+\usepackage{amsfonts, dsfont} % Math fonts
+\usepackage{authblk} % Author and affiliations
+\usepackage{hyperref} % Links
+\usepackage{graphicx} % Include graphics
+\usepackage{apalike} % Reference styling
+
+% Commands
+\providecommand{\keywords}[1]{\textbf{\textit{Index terms---}} #1}
+
+\title{Rebuttal for Reviewer 2163}
+
+\author{Max Cohen}
+\affil{Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{itemize}
+	\item Lancer un training sur une base de donnees publique ; on a choisi https://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction.
+	\item Ajouter une table aves la comparison de notre modèle avec le LSTM dropout pour les metriques \textbf{PICP, MPIW, Temps d'inférence}.
+	\item Reformuler les motivations pour expliquer clairement l'intérêt des modèles d'état
+	\item Expliquer qu'on peut s'adapter à n'importe quel bruit en changeant les équations
+	\item Expliquer que le temps de calcul pour l'entraînement est raisonable, et qu'on prévoit de le réduire en appliquant des méthodes prouvées.
+\end{itemize}
+
+\bibliographystyle{apalike}
+\bibliography{references}
+\end{document}
