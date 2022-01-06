@@ -66,7 +66,7 @@ Current deep learning framework allows stacking arbitrary high number of recurre
 These recurrent architectures are able to approximate complex nonlinear time series, but suffer from overconfidence when evaluated outside of their training observations.
 Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation \cite{Hinton1995BayesianLF}.
 
-Several architectures inspired by variational inference emerged by considering latent states as random variables and approximating their posterior distribution.
+Several architectures inspired by Variational Inference (VI) emerged by considering latent states as random variables and approximating their posterior distribution.
 The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
 Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
 %Similarly, introducing random variables directly into a neural network weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
@@ -289,7 +289,8 @@ In this paper, we introduced a decoupled architecture for uncertainty estimation
 Our deep neural network backbone is responsible for extracting high level features, while particle filtering allows modelling recurrent non linear uncertainty.
 Our proposed model improves confidence interval quality, compared to MC Dropout methods, while remaining simple and efficient to train, compared to VI alternatives.
 
-We demonstrate the potential behind combining RNN with latent state space models ; more complex architectures, such as GRU or LSTM cells, are left for future works.
+We demonstrate the potential behind implementing latent space models as a modified RNN cell ;
+more complex architectures, such as the GRU network used in the input model, or LSTM cells, are left for future works.
 Likewise, the Path-space smoother could be replaced by faster and more performant alternatives described above.
 
 Our decoupled architecture enables incorporating uncertainty estimation to an already trained network.
