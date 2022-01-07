@@ -19,12 +19,35 @@
 \begin{document}
 \maketitle
 
+We would like to start by thanking the reviewer for their thorough reading of our paper.
+We took note of their remarks, and attempted to improve the clarity and precision of our work as best as possible.
+
+In order to expand on our validation experiments, we evaluated our model on the public \textit{Appliances energy prediction Data Set}\footnote{https://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction} from the UCI Machine Learning Repository.
+Indoor temperature and humidity records are matched with various weather variables, such as outdoor temperature, pressure or wind speed, and building consumption information (for appliance and lights).
+
+We would also like to highlight that although our training dataset contains a limited number of samples, each one represents a week's worth of hourly data for 10 different weather and occupation time series.
+
+The famously expensive computations of Sequential Monte Carlo (SMC) sampling is one of the main motivation for our paper ;
+our main contribution consists in decoupling SMC computations from the rest of the model:
+\begin{itemize}
+	\item \textbf{training}: we were able to reach reasonable training times by separately training the model's backbone from the last uncertainty quantification layer.
+		This way, expensive SMC computations are limited to finetuning only a few parameters.
+		Additionally, we aim at implementing recent advances in SMC that allow smoothing with a linear computational complexity, see [].
+	\item \textbf{inference}: During inference, shit is parallelized so fast
+\end{itemize}
+
+
+
+
 \begin{itemize}
 	\item Lancer un training sur une base de donnees publique ; on a choisi https://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction.
 	\item Ajouter une table aves la comparison de notre modèle avec le LSTM dropout pour les metriques \textbf{PICP, MPIW, Temps d'inférence}.
 	\item Reformuler les motivations pour expliquer clairement l'intérêt des modèles d'état
 	\item Expliquer qu'on peut s'adapter à n'importe quel bruit en changeant les équations
-	\item Expliquer que le temps de calcul pour l'entraînement est raisonable, et qu'on prévoit de le réduire en appliquant des méthodes prouvées.
+	\item Expliquer que le temps de calcul pour l'entraînement est raisonable, et qu'on prévoit de le réduire en appliquant des méthodes prouvées. Rappeler que le SMC est uniquement sur la dernière couche. Et lors de l'inférence, tout est parallélisé.
+	\item Remarque motivation : souligner la différence entre généralisation et overconfidence.
+	\item Le remarcier pour les bruits multimodals.
+	\item Remaquer que les bases d'entrainement comportent peu de samples, mais que chacun contient 168*10 valeurs.
 \end{itemize}
 
 \bibliographystyle{apalike}
