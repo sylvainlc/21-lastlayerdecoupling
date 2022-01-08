@@ -21,14 +21,7 @@
 
 We would like to thank the reviewer for his/her thorough reading of our paper for the positive feedback on our contribution. We also took the time to proofread the entire body of our paper, in order to correct the remaining typos such as the one reported by the reviewer.
 
-\textit{Details about adding validation.} We also agree with the reviewer that "The experiment [was] very small and focused
-on a very specific problem. Authors should validate their proposed technique on a well-know, more complex problem". In the original version of the paper, we focused on a specific application, yet challenging in our opinion, mainly due to space constraints. In order to improve the paper we propose to add in the revised version of the paper another experimental setting. 
-We run additional experiments using the dataset XXX where we trained our model (XXX details on the architecture and training as in the original paper here). We obtained the results provided below in Table~\ref{}. This confirms our comments on the first experiments.
-We ould like to thank the reviewer for this comment which helped improving the paper and hope that this new experiment provides more convincing numerical validation.
-
-It is true that  "Even for lower dimensional state space
-models, Monto Carlo sampling is computationally expensive do perform at training time". However we would like to point out that the decoupling procedure we propose introduces a latent data model only on the last layer of the model. This means that the Monte Carlo procedure to approximate the score function during training is performed on a low-dimensional tate space. The computational time is indeed larger than for the standard RNN (XXX give the order of magnitude here) but does not increase dramatically.
- In addition, during validation and inference the running time of our algorithm is really small but still allow to produce interesting approximations of the distribution of new data based on past samples. These remarks will be added at the end of Section 2 for better clarity.
+\textit{Details about adding validation.} 
 
 
 
