@@ -10,33 +10,44 @@
 % Commands
 \providecommand{\keywords}[1]{\textbf{\textit{Index terms---}} #1}
 
-\title{Rebuttal for Reviewer 2163}
+\title{}
 
-\author{Max Cohen}
-\affil{Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris}
+\author{}
+%\affil{Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris}
 \date{}
 
 \begin{document}
 \maketitle
 
-We would like to start by thanking the reviewer for their thorough reading of our paper.
-We took note of their remarks, and attempted to improve the clarity and precision of our work as best as possible.
 
-In order to expand on our validation experiments, we evaluated our model on the public \textit{Appliances energy prediction Data Set}\footnote{https://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction} from the UCI Machine Learning Repository.
-Indoor temperature and humidity records are matched with various weather variables, such as outdoor temperature, pressure or wind speed, and building consumption information (for appliance and lights).
 
-We would also like to highlight that although our training dataset contains a limited number of samples, each one represents a week's worth of hourly data for 10 different weather and occupation time series.
 
-The famously expensive computations of Sequential Monte Carlo (SMC) sampling is one of the main motivation for our paper ;
+We would like to thank the reviewer for their thorough reading of our paper.
+We took note of his/her remarks which helped improve the clarity and precision of our work.
+
+We also agree with the reviewer that "The experiment [was] very small and focused
+on a very specific problem. Authors should validate their proposed technique on a well-know, more complex problem". In the original version of the paper, we focused on a specific application, yet challenging in our opinion, mainly due to space constraints.  In order to improve the paper we propose to add in the revised version of the paper another experimental setting.  We evaluated our model on the public \textit{Appliances energy prediction Data Set}\footnote{https://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction} from the UCI Machine Learning Repository.
+Indoor temperature and humidity records are matched with various weather variables, such as outdoor temperature, pressure or wind speed, and building consumption information (for appliance and lights). We would also like to highlight that although our training dataset contains a limited number of samples, each one represents a week's worth of hourly data for 10 different weather and occupation time series. We trained our model (XXX details on the architecture and training and dimension of the inputs as in the original paper here). We obtained the results provided below in Table~\ref{}. This confirms our comments on the first experiments.
+We would like to thank the reviewer for this comment which helped improving the paper and hope that this new experiment provides more convincing numerical validation.
+
+
+
+It is true that  "Even for lower dimensional state space
+models, Monto Carlo sampling is computationally expensive do perform at training time". The famously expensive computations of Sequential Monte Carlo (SMC) sampling is one of the main motivation for our paper ;
 our main contribution consists in decoupling SMC computations from the rest of the model:
 \begin{itemize}
 	\item \textbf{training}: we were able to reach reasonable training times by separately training the model's backbone from the last uncertainty quantification layer.
-		This way, expensive SMC computations are limited to finetuning only a few parameters.
+		This way, expensive SMC computations are limited to finetuning only a few parameters. The computational time is indeed larger than for the standard RNN (XXX give the order of magnitude here) but does not increase dramatically.
 		Additionally, we aim at implementing recent advances in SMC that allow smoothing with a linear computational complexity, see [].
-	\item \textbf{inference}: During inference, shit is parallelized so fast
+	\item \textbf{inference}:  in addition, during validation and inference the running time of our algorithm is really small but still allow to produce interesting approximations of the distribution of new data based on past samples. 
 \end{itemize}
+These remarks will be added at the end of Section 2 for better clarity.
 
+As stated by the reviewer we "assume the state space model follows a Gaussian distribution". However, the SMC approach can be used for any noise distribution as long as the transition and emission densities can be evaluated pointwise (it has also been proved recently that smoothing can be performed when only an estimator of the densities is available using pseudo-marginal techniques, see \cite{papier gloaguen lecorff Olsson}). We focused on the Gaussian case  in our setting as it provides good performance but extension to noise with heavier tails is straightforward. We propose to add these clarifications at the end of Section 2.1.
 
+The reviewer finds "the assumption and motivation stated in
+this paper [...] both incorrect". We agree that some parts of the presentation were a bit confusing in the original version but would like to insist on the fact that our assumptions and motivations are correct in our opinion and also the topics of a very active area of research.  In the revised version of the paper we propose to provide a clear motivation. We propose for instance to replace the paragraph "These recurrent architectures are able to approximate complex nonlinear time series, but suffer from overconfidence when evaluated outside of their training observations.
+Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation \cite{Hinton1995BayesianLF}." by the following statement "XXX".
 
 
 \begin{itemize}
