@@ -31,7 +31,7 @@ We compared our model with the LSTM Dropout on the indoor temperature forecastin
 As advised by the reviewer, computation times for each training epoch are reported, showing that our model is slower, without being prohibitive in practice.
 We would like to thank the reviewer for this comment which helped improving the paper and hope that this new experiment provides more convincing numerical validation.
 
-It is true that  "Even for lower dimensional state space models, Monto Carlo sampling is computationally expensive do perform at training time".
+It is true that "Even for lower dimensional state space models, Monto Carlo sampling is computationally expensive do perform at training time".
 The famously expensive computations of Sequential Monte Carlo (SMC) sampling is one of the main motivation for our paper, which we address by decoupling SMC computations from the rest of the model:
 \begin{itemize}
 	\item \textbf{training}: we were able to reach reasonable training times by separately training the model's backbone from the last uncertainty quantification layer.
@@ -42,12 +42,15 @@ The famously expensive computations of Sequential Monte Carlo (SMC) sampling is 
 \end{itemize}
 These remarks will be added at the end of Section 2 for better clarity.
 
-As stated by the reviewer we "assume the state space model follows a Gaussian distribution". However, the SMC approach can be used for any noise distribution as long as the transition and emission densities can be evaluated pointwise (it has also been proved recently that smoothing can be performed when only an estimator of the densities is available using pseudo-marginal techniques, see \cite{papier gloaguen lecorff Olsson}). We focused on the Gaussian case  in our setting as it provides good performance but extension to noise with heavier tails is straightforward. We propose to add these clarifications at the end of Section 2.1.
+As stated by the reviewer we "assume the state space model follows a Gaussian distribution".
+However, the SMC approach can be used for any noise distribution as long as the transition and emission densities can be evaluated pointwise (it has also been proved recently that smoothing can be performed when only an estimator of the densities is available using pseudo-marginal techniques, see \cite{papier gloaguen lecorff Olsson}).
+We focused on the Gaussian case in our setting as it provides good performance but extension to noise with heavier tails is straightforward.
+We propose to add these clarifications at the end of Section 2.1.
 
 The reviewer finds "the assumption and motivation stated in this paper [...] both incorrect".
 We agree that some parts of the presentation were a bit confusing in the original version but would like to insist on the fact that our assumptions and motivations are correct in our opinion and also the topics of a very active area of research.
 In the revised version of the paper we propose to provide a clear motivation.
-We propose for instance to replace the paragraph "These recurrent architectures are able to approximate complex nonlinear time series, but suffer from overconfidence when evaluated outside of their training observations. Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation \cite{Hinton1995BayesianLF}." by the following statement "XXX".
+We propose for instance to replace the paragraph "These recurrent architectures are able to approximate complex nonlinear time series, but suffer from overconfidence when evaluated outside of their training observations. Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation" by the following statement: "These recurrent architectures are able to approximate complex nonlinear time series, but are prone to making overly confident errors. Bayesian statistics aim at mitigating this drawback by providing uncertainty estimation".
 
 \begin{table}[htpb]
 	\centering
