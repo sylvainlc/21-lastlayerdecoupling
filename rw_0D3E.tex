@@ -19,8 +19,8 @@
 \begin{document}
 \maketitle
 
-We would like to start by thanking the reviewer for their thorough reading of our paper.
-We took note of the misleading sections they reported, and attempted to improve the global clarity of our work.
+We would like to thank the reviewer for his/her thorough reading of our paper.
+We took note of the misleading sections they reported which improved the global clarity of our work.
 
 In particular, we aimed at clearly separating the definition of both the input model, from the proposed SMC layer.
 As we can chose any sequential architecture for the former, we opted for a multi layered GRU model.
@@ -32,10 +32,11 @@ We demonstrate the potential behind implementing latent space models as a modifi
 more complex architectures, such as the GRU network used in the input model, or LSTM cells, are left for future works.
 \end{quote}
 
-Furthermore, because we introduce a new SMC layer whose computations are not directly differentiable, we need to define a new loss function to approximate the gradient of the model.
+Furthermore, because we introduce a new SMC layer whose computations are not directly differentiable, we need to define a new loss function to approximate the gradient of the model. We confirm that our proposed architecture uses SMC methods as part of both the model and the loss function, and therefore would like to thank the reviewer once again for his comment on this "very interesting topic". In order to make it clear in the revised  paper, we propose to add at the end of Section 3.1 in the paragraph {\bf Sequential Monte Carlo Layer} the loss function obtained with our new layer. The proposed new lines are "XXX"
 
-We confirm to the reviewer that our proposed architecture uses SMC methods as part of both the model and the loss function, and therefore would like to thank them once again for taking an interest in our work.
-Contrary to the paper they kindly mentioned, \textit{SMC Faster R-CNN: Toward a scene-specialized multi-object detector}, we use particle filters for both training and inference.
+
+
+Contrary to the paper kindly mentioned, \textit{SMC Faster R-CNN: Toward a scene-specialized multi-object detector}, we use particle filters for both training and inference.
 
 \textit{Details about adding validation.}
 
