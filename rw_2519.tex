@@ -6,22 +6,40 @@
 \usepackage{hyperref} % Links
 \usepackage{graphicx} % Include graphics
 \usepackage{apalike} % Reference styling
+\usepackage{booktabs}
 
 % Commands
 \providecommand{\keywords}[1]{\textbf{\textit{Index terms---}} #1}
 
 \title{Rebuttal for Reviewer 2519}
 
-\author{Max Cohen}
-\affil{Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris}
+%\author{Max Cohen}
+%\affil{Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris}
 \date{}
 
 \begin{document}
-\maketitle
+%\maketitle
 
-We would like to thank the reviewer for his/her thorough reading of our paper for the positive feedback on our contribution. We also took the time to proofread the entire body of our paper, in order to correct the remaining typos such as the one reported by the reviewer.
+We would like to thank the reviewer for his/her thorough reading of our paper and for the positive feedback on our contribution. We also took the time to proofread the entire body of our paper, in order to correct the remaining typos such as the one reported by the reviewer.
 
-\textit{Details about adding validation.} 
+\textit{Details about the numerical validation.} Following also the remarks of Reviewer 2163, in order to expand on our validation experiments, we benchmarked our model on the \textit{Appliances energy prediction}\footnote{https://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction} public dataset from the UCI Machine Learning Repository.
+Indoor temperature and humidity records are matched with various weather variables, such as outdoor temperature, pressure or wind speed, and building consumption information (for appliance and lights).
+We compared our model with the LSTM Dropout on the indoor temperature forecasting task, and reported our results in Table~\ref{tab:comparison}, which comfort our first experiment. Computation times for each training epoch are reported, showing that our model is slower, without being prohibitive in practice.
+We  hope that this new experiment provides more convincing numerical validation.
+
+\begin{table}[htpb]
+	\centering
+	\caption{Comparison between LSTM Dropout and our SMC model on the new \texttt{energy} dataset.}
+	\label{tab:comparison}
+	\begin{tabular}{lllll}
+		\toprule
+		             & PICP            & MPIW    & MAE             & Training Epoch \\
+		\toprule
+		SMCL (ours)  & $\textbf{0.80}$ & $0.101$ & $0.84$          & 15s            \\
+		MCD $p=0.15$ & $0.23$          & $0.56$  & $\textbf{0.82}$ & \textbf{3s}    \\
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 
 
