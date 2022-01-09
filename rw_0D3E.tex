@@ -12,12 +12,12 @@
 
 \title{Rebuttal for Reviewer 0D3E}
 
-\author{Max Cohen}
-\affil{Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris}
+%\author{Max Cohen}
+%\affil{Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris}
 \date{}
 
 \begin{document}
-\maketitle
+%\maketitle
 
 We would like to thank the reviewer for their thorough reading of our paper.
 We took note of the misleading sections they reported which improved the global clarity of our work.
@@ -26,28 +26,25 @@ In particular, we aimed at clearly separating the definition of both the input m
 As we can chose any sequential architecture for the former, we opted for a multi layered GRU model.
 On the other hand, the SMC layer architecture impacts the computation of the loss ; we chose to settle for a simple RNN cell in order to keep the equations as simple as possible.
 The final model is thus comprised of an input model based on a GRU network, and a SMC layer based on a plain RNN network.
-We modified the conclusion accordingly:
-\begin{quote}
-	We demonstrate the potential behind implementing latent space models as a modified RNN cell ;
-	more complex architectures, such as the GRU network used in the input model, or LSTM cells, are left for future works.
-\end{quote}
+We modified the conclusion accordingly: 
+
+"We demonstrate the potential behind implementing latent space models as a modified RNN cell ; more complex architectures, such as the GRU network used in the input model, or LSTM cells, are left for future works".
+
 
 Furthermore, because we introduce a new SMC layer whose computations are not directly differentiable, we need to define a new loss function to approximate the gradient of the model.
 We confirm that our proposed architecture uses SMC methods as part of both the model and the loss function, and therefore would like to thank the reviewer once again for their comment on this "very interesting topic".
-In order to make it clear in the revised  paper, we propose to add at the end of Section 3.1 in the paragraph {\bf Sequential Monte Carlo Layer} the loss function obtained with our new layer.
-The proposed new lines are "XXX"
-\begin{quote}
-	Considering that we have computed a set of $N$ trajectories $(\xi^i_{0:T}),\;1 \leq i \leq N$, associated with weights $(\omega^i)$, we can approximate the gradient of the log likelihood by computing the gradient of:
+In order to make it clear in the revised  paper, we propose to add at the end of Section 3.1 in the paragraph {\bf Sequential Monte Carlo Layer} the loss function obtained with our new layer. The proposed new lines are as follows. 
+
+"Considering that we have sampled a set of $N$ trajectories $(\xi^i_{0:T}),\;1 \leq i \leq N$, associated with weights $(\omega_T^i)$ for a sequence of observations $Y_{1:T}$, depending on the current value of the parameter estimate, we can approximate the gradient of the loglikelihood using Fisher's identity by computing the gradient of:
 	\begin{align*}
 		\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y|                                                                                                        \\
-		                   & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i))                         \\
-		                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
+		                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega_T^i (Y_k - f_\theta(\xi_k^i))^{\top} \Sigma_y^{-1} (Y_k - f_\theta(\xi_k^i))                         \\
+		                   & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega_T^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))^\top\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))\,.
 	\end{align*}
-
-\end{quote}
+The gradient of this function provides the explicit derivation of  $\widehat{S}_k^N$".
 Contrary to the paper kindly mentioned, \textit{SMC Faster R-CNN: Toward a scene-specialized multi-object detector}, we use particle filters for both training and inference.
 
-\textit{Details about adding validation.}
+%\textit{Details about adding validation.}
 
 \bibliographystyle{apalike}
 \bibliography{references}
