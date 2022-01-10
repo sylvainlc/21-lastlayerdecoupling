@@ -25,7 +25,7 @@ We compared our model with the LSTM Dropout on the indoor temperature forecastin
 As advised by the reviewer, computation times for each training epoch are reported, showing that our model is slower, without being prohibitive in practice.
 We hope that this new experiment provides more convincing numerical validation.
 
-It is true that "Even for lower dimensional state space models, Monto Carlo sampling is computationally expensive to perform at training time".
+It is true that "Even for lower dimensional state space models, Monte Carlo sampling is computationally expensive to perform at training time".
 These expensive computations are one of the main motivation for our paper, which we address by decoupling the last SMC layer from the rest of the model.
 During \textbf{training}, the model's backbone and the uncertainty quantification layer are fitted separately.
 This way, expensive SMC computations are limited to finetuning only a few parameters, allowing for reasonable training times.
