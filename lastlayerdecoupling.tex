@@ -186,6 +186,13 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 %	\label{algo:allsteps}
 %\end{algorithm}
 
+\subsection{Stochastic Gradient Descent for online estimation}
+An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. The algorithm produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
+$$
+\theta_{k} = \theta_{k-1} + \gamma_k \nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1}) \,,
+$$
+where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{}. Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
+
 \section{Experiments}
 \label{sec:exp}
 
