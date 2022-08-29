@@ -103,9 +103,9 @@ An input model $h_\varphi$ is responsible for extracting relevant features from 
 \begin{equation*}
 	\left\{
 	\begin{aligned}
-		\widetilde U_t & = h_\varphi(U_t)                             & \text{input model}        \\
-		X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model}        \\
-		Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model,} \\
+		\widetilde U_t & = h_\varphi(U_t)                             & \text{input model, }        \\
+		X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }        \\
+		Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model, } \\
 	\end{aligned}
 	\right.
 \end{equation*}
@@ -126,7 +126,7 @@ All details on the training of the input model are postponed to Section~\ref{sec
 \subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 
-Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the log likelihood of the observations is not available explicitly since, it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
+Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly since, it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
 In this paper we use Fisher's identity to propose a Monte Carlo estimator of the score function:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
@@ -140,7 +140,7 @@ At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_
 %At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$,
 %The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}.
 Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm \cite{Olsson2014EfficientPO}.
+Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
 %Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
 %\begin{align*}
 %	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
