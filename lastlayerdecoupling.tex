@@ -121,13 +121,13 @@ We therefore propose to first train the input model following classical deep lea
 
 \subsection{Input model}%
 \label{sub:input_model}
-Extracting high-level features for the initial inputs can be done efficiently using several multi-layer neural network architectures. In this paper, we chose a multi-layered GRU network such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
+In this paper, we chose a multi-layered GRU network as the input model, such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
 $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
 where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
 The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model.
-This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using traditional stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
+This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
 The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameter $\widehat \theta$ is used as an initial estimate for the inference of the state space layer.
 All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
