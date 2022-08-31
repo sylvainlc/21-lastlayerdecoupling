@@ -96,11 +96,15 @@ Particle filters have also proven reliable in other fields, such as presented in
 \subsection{Proposed model}%
 \label{sub:proposed_architecture}
 
-In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$. Let $T\ge 1$ be a given time horizon. We consider the regression task associated with observations $Y_{1:T}$ and inputs $U_{1:T}$. In a classical reccurent neural approach, at each time $t$, a  state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform of $h_t$: $o_t = f_\theta(h_t)$, where $\theta$ are real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions. The parameters are usually trained using stochastic gradient based algorithms with a regularized mean squared error loss function.
-
+In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$.
+Let $T\ge 1$ be a given time horizon.
+We consider the regression task over observations $Y_{1:T}$ associated with the inputs $U_{1:T}$.
+Traditionaly, at each time $t$, a state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform of $h_t \mapsto o_t = f_\theta(h_t)$, where $\theta$ are real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions.
+The parameters are usually trained using stochastic gradient based algorithms with a regularized mean squared error loss function.
 
 In our approach, we introduce a sequence $X_{1:T}$ of stochastic hidden states in the last layer of the model. 
-An input model $h_\varphi$ is responsible for extracting relevant features from the input time series. Then, the final hidden states of this network are fed to a state space layer, based on a plain RNN, to design a generative model and allow uncertainty estimation. For all $t\geq 1$, the model is:
+An input model $h_\varphi$ is responsible for extracting high level features from the input time series. Then, the final hidden states of this network are fed to a state space layer.
+For all $t \geq 1$, the model is defined as:
 \begin{equation*}
 	\left\{
 	\begin{aligned}
@@ -110,7 +114,10 @@ An input model $h_\varphi$ is responsible for extracting relevant features from 
 	\end{aligned}
 	\right.
 \end{equation*}
-where $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ are two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$ and $\varphi$ and $\theta$ are unknown parameters. In this paper, we focus on settings where the transformations $(h_\varphi,g_\theta)$ are given by multi-layer neural networks architectures and $f_\theta$ is a final output layer. Estimating the parameters of such very high-dimensional models with unobserved (i.e. noisy) layers is a challenging task. We therefore propose to first train the input model following classical deep neural network training approaches and then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
+We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, and $\varphi$ and $\theta$ are unknown parameters, although any distribution can be substituted.
+In this paper, we focus on settings where $h_\varphi$ is an arbitrary multi-layer neural network, and $(g_\theta, f_\theta)$ are non linear transformations.
+Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
+We therefore propose to first train the input model following classical deep learning approaches and then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
 
 \subsection{Input model}%
 \label{sub:input_model}
