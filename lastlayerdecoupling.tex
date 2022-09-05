@@ -102,14 +102,14 @@ We consider the regression task over observations $Y_{1:T}$ associated with the 
 Traditionaly, at each time $t$, a state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform of $h_t \mapsto o_t = f_\theta(h_t)$, where $\theta$ are real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions.
 The parameters are usually trained using stochastic gradient based algorithms with a regularized mean squared error loss function.
 
-In our approach, we introduce a sequence $X_{1:T}$ of stochastic hidden states in the last layer of the model. 
+In our approach, we introduce a sequence $X_{1:T}$ of stochastic hidden states in the last layer of the model.
 An input model $h_\varphi$ is responsible for extracting high level features from the input time series. Then, the final hidden states of this network are fed to a state space layer.
 For all $t \geq 1$, the model is defined as:
 \begin{equation*}
 	\left\{
 	\begin{aligned}
-		\widetilde U_t & = h_\varphi(U_t)                             & \text{input model, }        \\
-		X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }        \\
+		\widetilde U_t & = h_\varphi(U_t)                             & \text{input model, }       \\
+		X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }       \\
 		Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model, } \\
 	\end{aligned}
 	\right.
@@ -197,20 +197,30 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 \subsection{Stochastic Gradient Descent for online estimation}
 An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. The algorithm produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
 $$
-\theta_{k} = \theta_{k-1} + \gamma_k \nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1}) \,,
+	\theta_{k} = \theta_{k-1} + \gamma_k \nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1}) \,,
 $$
 where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{}. Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
 
 \section{Experiments}
 \label{sec:exp}
 
+\subsection{Data}
+\label{sub:data}
+\textbf{Electricity Transformer Temperature.}
+The Electricity Transformer Temperature (ETT) Dataset consists of reccords of six power load features with their corresponding oil temperature, which we aim to forecast.
+In the following experiments, we focused on the ETTh1 problem, involving hourly reccords.
+Following the original paper introducing the dataset (\cite{Zhou2021Informer}), we split in the dataset in 1 year for training, 4 month of validation and 4 month for testing purposes.
+Each sample is composed of a 24 hour long lookback window, where benchmarked models have access to both commands and observations, followed by a 24 hour long forecast period, where models performances are compared to the ground truth.
+
+\textbf{Humidity.}
+The air quality database is split into training (2020) and validation (2021) sets.
+Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed humidity levels.
+We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $1$ dimensional output.
+
 \subsection{Training}%
 \label{sub:training}
-{\bf Data.} Both training of the input model and the Sequential Monte Carlo Layer (SMCL) were performed on an air quality database, split into training (2020, $N_{\texttt{sample}}=52$) and validation (January - June 2021, $N_{\texttt{sample}}=25$) sets.
-Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed \ensuremath{\mathrm{CO_2}} and humidity levels.
-We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $2$ dimensional output.
 
-	{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=8$ and a latent dimension of $d_\textnormal{latent}=8$.
+{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=8$ and a latent dimension of $d_\textnormal{latent}=8$.
 During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with the deterministic model.
 
 	{\bf Sequential Monte Carlo layer.} In the experiments, we use $N=200$ particles to train the SMCL. To highlight the efficiency of the last layer state space model we implemented a simple particle smoothing algorithm to approximate \eqref{eq:grad_ll}. We used a bootstrap filter where particles are sampled from the prior model and weighted with the observation model. We used the Path-space smoother which means, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$,
