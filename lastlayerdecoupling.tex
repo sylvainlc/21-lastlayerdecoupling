@@ -206,16 +206,17 @@ where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observ
 
 \subsection{Data}
 \label{sub:data}
+We evaluated our model against two time series dataset, both private and public, described in the following paragraphs.
+Each sample is composed of a 24 hour long lookback window, where benchmarked models have access to both commands and observations, followed by a 24 hour long forecast period, where models performances are compared to the ground truth.
+
 \textbf{Electricity Transformer Temperature.}
 The Electricity Transformer Temperature (ETT) Dataset consists of reccords of six power load features with their corresponding oil temperature, which we aim to forecast.
 In the following experiments, we focused on the ETTh1 problem, involving hourly reccords.
 Following the original paper introducing the dataset (\cite{Zhou2021Informer}), we split in the dataset in 1 year for training, 4 month of validation and 4 month for testing purposes.
-Each sample is composed of a 24 hour long lookback window, where benchmarked models have access to both commands and observations, followed by a 24 hour long forecast period, where models performances are compared to the ground truth.
 
 \textbf{Humidity.}
-The air quality database is split into training (2020) and validation (2021) sets.
-Each is composed of week-long hourly records ($T=168$) associating weather data (humidity, temperature, irradiance), as well as prior building knowledge such as modeled occupancy, with observed humidity levels.
-We concatenate input variables to obtain a multivariate time series of dimension $8$, and a $1$ dimensional output.
+The air quality database contains hourly indoor humidity levels, that we aim to forecast based on weather conditions, namely outdoor humidity and temperature.
+The dataset is split into training (2020) and validation (2021) sets.
 
 \subsection{Training}%
 \label{sub:training}
