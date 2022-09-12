@@ -212,56 +212,45 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 \subsection{Training}%
 \label{sub:training}
 
-{\bf Input model.} Our input model is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=8$ and a latent dimension of $d_\textnormal{latent}=8$.
-During the training of the input model, me minimize the cost function $\mathcal{L}_{\mathrm{inp}}(\varphi,\theta) = N_{\texttt{sample}}^{-1} \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi,\theta}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with the deterministic model.
+\textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=6$ corresponding to the number of power load records of the dataset, and an output dimension of 3.
+In order to estimate the parameters $\varphi$, we add an additional GRU layer responsible for computing oil temperature predictions.
+During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
-	{\bf Sequential Monte Carlo layer.} In the experiments, we use $N=200$ particles to train the SMCL. To highlight the efficiency of the last layer state space model we implemented a simple particle smoothing algorithm to approximate \eqref{eq:grad_ll}. We used a bootstrap filter where particles are sampled from the prior model and weighted with the observation model. We used the Path-space smoother which means, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$,
+\textbf{The Sequential Monte Carlo layer} uses the simple Path-space smoother where, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$, we can approximate \eqref{eq:grad_ll} with:
 $$
-	\widehat S_k^N = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,.
+	\widehat {\nabla_\theta \log p_\theta(Y_{1:T})_k^N} = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,.
 $$
-
-\subsection{Visualizations}%
-\label{sub:visualizations}
-We first illustrate the ability of our multi-layer model to capture the distribution of future observations. First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
-$$
-	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})\,,
-$$
-%	\times \int p_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) m_{\widehat\theta,\widehat\varphi}(\xi_t^i,U_{t+1}; x_{t+1}) g_{\widehat\theta}(x_{t+1};y_{t+1})\mathrm{d}x_{t+1}\,,
-%\end{multline*}
-where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$ is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}. In Figure~\ref{fig:filter_k+1}, we display empirical boxplots associated with $N$ samples approximatively obtained from $p^N_{\widehat\theta,\widehat\varphi}$ by sampling through the model of Section~\ref{sub:proposed_architecture}.
-Additionally, evaluations of the quality of predicted confidence intervals are presented in Section~\ref{sub:evaluations}.
-
-Although predictions given the previous time step provide good performance, it is limited as many applications require multi-steps forecasts, suh as online building management to maintain air quality. We seize this opportunity to explore longer range predictions by sampling approximately $N$ times from $\sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+p}|\xi_t^i,U_{t+1:t+p})$ for $p>1$ by sampling through the model of Section~\ref{sub:proposed_architecture}.
-%Since particles can no longer be resampled, we approximate their propagation.
-The results are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 48$ (2 days).
-%The second part of the graph represent their propagation ; as we model noise in the latent space, the confidence intervals grow steadily before converging in size.
-
-We benchmark our proposed architecture with MC Dropout methods, by implementing Dropout layers as described in \cite{Gal2016NIPS} in stead of our noise model.
-In Figure~\ref{fig:boxplot_comparison}, we plot both confidence intervals on a validation sample, for a dropout value of $p_\textnormal{drop}=0.15$.
-Despite being based on the same deep learning architecture, the RNN dropout is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
-Numerical comparison of these confidence intervals on the entire validation set can be found in Table~\ref{tab:ci_comparison}.
-
-\begin{figure}[htpb]
-	\centering
-	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($t<24$) and without ($t>24$).
-	Since re sampling of particles is no longer available at that point, the uncertainty grows.
-	As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods.
-	Aggregated results on the entire validation set for the MSE and MAE criteria can be found in Table~\ref{tab:ci_comparison}.}
-	\includegraphics[width=\linewidth]{filter_kp24_ett.png}
-	\label{fig:filter_k+24}
-\end{figure}
+During forecasting, we implemented a bootstrap filter where particles are sampled from the prior model and weighted with the observation model.
+All following experiments were computed with $N=100$ particles.
 
 \subsection{Evaluations}%
 \label{sub:evaluations}
 
-We compare our model to MC Dropout methods on Prediction Interval (PI) metrics introduced in \cite{Pearce2018}.
-Given an estimation with lower and upper bound $\hat y_L^{1:T}, \hat y_U^{1:T}$, we compute the Prediction Interval Coverage Probability (PICP) and the Mean Prediction Interval Width as $\mathrm{PICP} = T^{-1}\sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t)$ and $\mathrm{MPIW} = T^{-1} \sum^{T}_{t=1}(\hat y_U^t - \hat y_L^t)$.
-%$$
-%	\mathrm{PICP} = \frac{1}{T} \sum^{T}_{t=1} \mathbb{1}_{[\hat y_L^t, \hat y_U^t]}(y_t) \, \quad \mathrm{MPIW} = \frac{1}{T} \sum^{T}_{t=1} \hat y_U^t - \hat y_L^t\,.
-%$$
-These estimators are then aggregated on the entire validation set, and their mean and variance are displayed in Table~\ref{tab:ci_comparison}.
-Our model is able to capture much more data than the benchmarked MC Dropout method, albeit for a higher bias.
-We evaluated RNN Dropout models with multiple values for $p_\textnormal{drop}$, but were not able to obtain confidence interval with increased size.
+In this section, we illustrate the ability of our multi-layer model to capture the distribution of future observations.
+First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
+$$
+	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})\,,
+$$
+where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$ is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}.
+Although predictions given the previous time step provide good performances, it is limited as many applications require multi-steps forecasts.
+In order to explore longer ranges, we can draw $N$ independent samples from $\sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+p}|\xi_t^i,U_{t+1:t+p})$, for $p>1$.
+As $p$ increases, the accuracy of our predictions decreases, as our model no longer has access to the observations.
+We report MSE and MAE criteria on the ETT Dataset, obtained by averaging the forecasts of these $N$ draw, in Table~\ref{tab:ci_comparison}.
+The associated confidence intervals are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 24$.
+
+We benchmark our proposed architecture with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}, with a dropout values of $p_\textnormal{drop}=0.15$.
+The training procedure is similar to traditional recurrent models ; during inference, we draw $N=100$ samples from the dropout layers, and compute the same average forecasts and confidence intervals as our model.
+Despite being based on the same deep learning architecture, the MC dropout model is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
+
+\begin{figure}[htpb]
+	\centering
+	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($t<24$) and without ($t>24$).
+		Since re sampling of particles is no longer available at that point, the uncertainty grows.
+		As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods.
+		Aggregated results on the entire validation set for the MSE and MAE criteria can be found in Table~\ref{tab:ci_comparison}.}
+	\includegraphics[width=\linewidth]{filter_kp24_ett.png}
+	\label{fig:filter_k+24}
+\end{figure}
 
 \begin{table}[htpb]
 	\centering
@@ -269,11 +258,10 @@ We evaluated RNN Dropout models with multiple values for $p_\textnormal{drop}$, 
 	\label{tab:ci_comparison}
 	\begin{tabular}{llll}
 		\toprule
-		$(\times 10^{-2})$ & PICP          & MPIW            & MAE           \\
+		$(\times 10^{-2})$ & MSE          & MAE & Computation time \\
 		\toprule
-		SMCL (ours)        & $91 \pm 2.04$ & $160 \pm 12.63$ & $54 \pm 7.84$ \\
-		MCD $p=0.15$       & $32 \pm 0.99$ & $38.3 \pm 0.13$ & $45 \pm 1.50$ \\
-		MCD $p=0.3$        & $33 \pm 1.44$ & $40.1 \pm 0.13$ & $44 \pm 1.25$ \\
+		SMCL (ours)        & $7.20 \pm -$ & $-$ & $-$              \\
+		MCD                & $7.92 \pm -$ & $-$ & $-$              \\
 		\bottomrule
 	\end{tabular}
 \end{table}
