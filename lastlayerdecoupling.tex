@@ -1,59 +1,32 @@
-% Template for ICASSP-2021 paper; to be used with:
-% spconf.sty - ICASSP/ICIP LaTeX style file, and
-% IEEEbib.bst - IEEE bibliography style file.
-% --------------------------------------------------------------------------
-\documentclass{article}
-\usepackage{spconf,amsmath,graphicx,xcolor}
-\usepackage{hyperref}
-\usepackage{bbold}
-\usepackage{amsfonts}
+\documentclass[journal]{IEEEtran}
+
+% Packages
+\usepackage{amsmath} % Math environments
+\usepackage{amsfonts, dsfont} % Math fonts
+\usepackage{hyperref} % Links
+\usepackage{graphicx} % Include graphics
 \usepackage[ruled,vlined]{algorithm2e}
 \usepackage{booktabs}
-\usepackage{graphicx}
 \graphicspath{ {./images/} }
 
 \title{Last layer state space model for representation learning and uncertainty quantification}
-%
-% Single address.
-% ---------------
-\name{Max Cohen$^{\star \dagger}$ \qquad Sylvain Le Corff$^{\star}$ \qquad Maurice Charbit$^{\dagger}$ \qquad Gilles Nozière$^{\dagger}$}
-\address{
-	$^{\star}$Samovar, T\'el\'ecom SudParis, d\'epartement CITI, Institut Polytechnique de Paris, Palaiseau, France.\\
-	$^{\dagger}$ Accenta, Boulogne-Billancourt.
-}
-%
-% For example:
-% ------------
-%\address{School\\
-%	Department\\
-%	Address}
-%
-% Two addresses (uncomment and modify for two-address case).
-% ----------------------------------------------------------
-%\twoauthors
-% {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
-%	{School A-B\\
-%	Department A-B\\
-%	Address A-B}
-% {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
-%	while at ...}}
-%	{School C-D\\
-%	Department C-D\\
-%	Address C-D}
-%
+
+\author{Max Cohen, Maurice Charbit and Sylvain Le Corff
+	\thanks{This work was supported by grants from Région Ile-de-France.}
+	\thanks{Max Cohen and Sylvain Le Corff are with Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris, (e-mail: \{max.cohen, sylvain.le\_corff\}@telecom-sudparis.eu).}
+	\thanks{Maurice Charbit is with Accenta, Boulogne-Billancourt (e-mail: mch@oze-energies.com).}}
 
 \begin{document}
 \maketitle
-
 \begin{abstract}
 	As sequential neural architectures become deeper and more complex, uncertainty estimation is more and more challenging.
 	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models. In this paper, we propose an algorithm to decompose a classification or regression problem into two steps,  a representation learning stage to learn low-dimensional states that generate observed data and a state space model training for uncertainty estimation. This approach allows to separate representation learning and design of generative models. We demonstrate how predictive distributions can be estimated on top of an existing and trained neural network, combining a state space-based last layer and Sequential Monte Carlo methods.  We apply our proposed methodology for the estimation of air quality in office buildings through the hourly prediction of humidity, as well as electricity transformers efficiency.
 	Our model accounts for the noisy data structure, due to unknown or unavailable variables (occupancy of the building, manual ventilation, etc.), and is able to provide confidence intervals on predictions.
 \end{abstract}
 
-\begin{keywords}
+\begin{IEEEkeywords}
 	Recurrent neural networks, Representation learning, Uncertainty quantification, Sequential Monte Carlo.
-\end{keywords}
+\end{IEEEkeywords}
 
 \section{Introduction}
 \label{sec:intro}
@@ -289,50 +262,7 @@ Our decoupled architecture enables incorporating uncertainty estimation to an al
 This opens the door to multiple, cheap finetuning of last layers parameters, from a global pretraining.
 %For our application, this could translate in a generic training of the input model on an entire year of weather and building records, followed by season specific finetunings.
 
-% Below is an example of how to insert images. Delete the ``\vspace'' line,
-% uncomment the preceding line ``\centerline...'' and replace ``imageX.ps''
-% with a suitable PostScript file name.
-% -------------------------------------------------------------------------
-%\begin{figure}[htb]
-
-%\begin{minipage}[b]{1.0\linewidth}
-% \centering
-% \centerline{\includegraphics[width=8.5cm]{image1}}
-%% \vspace{2.0cm}
-% \centerline{(a) Result 1}\medskip
-%\end{minipage}
-%%
-%\begin{minipage}[b]{.48\linewidth}
-% \centering
-% \centerline{\includegraphics[width=4.0cm]{image3}}
-%% \vspace{1.5cm}
-% \centerline{(b) Results 3}\medskip
-%\end{minipage}
-%\hfill
-%\begin{minipage}[b]{0.48\linewidth}
-% \centering
-% \centerline{\includegraphics[width=4.0cm]{image4}}
-%% \vspace{1.5cm}
-% \centerline{(c) Result 4}\medskip
-%\end{minipage}
-%%
-%\caption{Example of placing a figure with experimental results.}
-%\label{fig:res}
-%%
-%\end{figure}
-
-
-% To start a new column (but not a new page) and help balance the last-page
-% column length use \vfill\pagebreak.
-% -------------------------------------------------------------------------
-%\vfill
-%\pagebreak
-
-% References should be produced using the bibtex program from suitable
-% BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
-% style file from IEEE produces unsorted bibliography list.
-% -------------------------------------------------------------------------
-\bibliographystyle{IEEEbib}
+\clearpage
+\bibliographystyle{IEEEtran}
 \bibliography{refs.bib}
-
 \end{document}
