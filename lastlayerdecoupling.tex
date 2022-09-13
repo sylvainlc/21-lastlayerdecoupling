@@ -227,7 +227,11 @@ Despite being based on the same deep learning architecture, the MC dropout model
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of PI metrics and Mean Absolute Error (MAE) of our model and the RNN Dropout. This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set. For our model, we defined the lower and upper bound as the $q=0.95$ quantile of the predictions associated with each particle. Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$. Mean values of the estimator on the validation set are displayed, along with their variance.}
+	\caption{Comparison of Mean Squared Error (MSE), Mean Absolute Error (MAE) and computation time of our model against the benchmarked MC Dropout methods and HMM.
+		% TODO Add HMM metrics
+		This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set.
+		% TODO Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$.
+		Mean values of the estimators are displayed along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{llll}
 		\toprule
