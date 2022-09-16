@@ -211,15 +211,15 @@ As $p$ increases, the accuracy of our predictions decreases, as our model no lon
 We report MSE and MAE criteria on the ETT Dataset, obtained by averaging the forecasts of these $N$ draw, in Table~\ref{tab:ci_comparison}.
 The associated confidence intervals are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 24$.
 
-We benchmark our proposed architecture with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}, with a dropout values of $p_\textnormal{drop}=0.15$.
+We benchmark our proposed architecture with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}, with dropout values of $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 The training procedure is similar to traditional recurrent models ; during inference, we draw $N=100$ samples from the dropout layers, and compute the same average forecasts and confidence intervals as our model.
 Despite being based on the same deep learning architecture, the MC dropout model is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
 
 \begin{figure}[htpb]
 	\centering
 	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($t<24$) and without ($t>24$).
-		Since re sampling of particles is no longer available at that point, the uncertainty grows.
-		As a comparison, we plotted the predictions of the pretrained network, before implementing SMC methods.
+		Since re sampling of particles is no longer available at that point, the uncertainty grows for our model.
+		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).
 		Aggregated results on the entire validation set for the MSE and MAE criteria can be found in Table~\ref{tab:ci_comparison}.}
 	\includegraphics[width=\linewidth]{filter_kp24_ett.png}
 	\label{fig:filter_k+24}
@@ -228,17 +228,17 @@ Despite being based on the same deep learning architecture, the MC dropout model
 \begin{table}[htpb]
 	\centering
 	\caption{Comparison of Mean Squared Error (MSE), Mean Absolute Error (MAE) and computation time of our model against the benchmarked MC Dropout methods and HMM.
-		% TODO Add HMM metrics
 		This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set.
-		% TODO Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.15$ and $p_\textnormal{drop}=0.3$.
+		Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 		Mean values of the estimators are displayed along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{llll}
 		\toprule
-		$(\times 10^{-2})$ & MSE             & MAE             & Computation time \\
+		$(\times 10^{-2})$ & MSE             & MAE             & Computation time  \\
 		\toprule
-		SMCL (ours)        & $7.74 \pm 9.84$ & $21.2 \pm 12.1$ & $-$              \\
-		MCD                & $8.05 \pm 8.20$ & $21.6 \pm 11.7$ & $-$              \\
+		SMCL (ours)        & $7.74 \pm 9.84$ & $21.2 \pm 12.1$ & $210 ms \pm 75.7$ \\
+		MCD $p=0.01$       & $8.20 \pm 14.0$ & $20.9 \pm 14.0$ & $193 ms \pm 60.4$ \\
+		MCD $p=0.05$       & $9.76 \pm 10.5$ & $23.4 \pm 13.4$ & $193 ms \pm 60.4$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
