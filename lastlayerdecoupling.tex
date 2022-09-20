@@ -20,7 +20,11 @@
 \maketitle
 \begin{abstract}
 	As sequential neural architectures become deeper and more complex, uncertainty estimation is more and more challenging.
-	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models. In this paper, we propose an algorithm to decompose a classification or regression problem into two steps, a representation learning stage to learn low-dimensional states that generate observed data and a state space model training for uncertainty estimation. This approach allows to separate representation learning and design of generative models. We demonstrate how predictive distributions can be estimated on top of an existing and trained neural network, combining a state space-based last layer and Sequential Monte Carlo methods. We apply our proposed methodology to the hourly estimation of Electricity Transformer temperature.
+	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
+	In this paper, we propose to decompose a classification or regression task in two steps: a representation learning stage to learn low-dimensional states, and a state space model for uncertainty estimation.
+	This approach allows to separate representation learning and design of generative models.
+	We demonstrate how predictive distributions can be estimated on top of an existing and trained neural network, by adding a state space-based last layer whose parameters are estimated with Sequential Monte Carlo methods.
+	We apply our proposed methodology to the hourly estimation of Electricity Transformer Oil temperature, a publicly benchmarked dataset.
 	Our model accounts for the noisy data structure, due to unknown or unavailable variables, and is able to provide confidence intervals on predictions.
 \end{abstract}
 
