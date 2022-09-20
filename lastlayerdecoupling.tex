@@ -21,7 +21,7 @@
 \begin{abstract}
 	As sequential neural architectures become deeper and more complex, uncertainty estimation is more and more challenging.
 	Efforts in quantifying uncertainty often rely on specific training procedures, and bear additional computational costs due to the dimensionality of such models.
-	In this paper, we propose to decompose a classification or regression task in two steps: a representation learning stage to learn low-dimensional states, and a state space model for uncertainty estimation.
+	In this letter, we propose to decompose a classification or regression task in two steps: a representation learning stage to learn low-dimensional states, and a state space model for uncertainty estimation.
 	This approach allows to separate representation learning and design of generative models.
 	We demonstrate how predictive distributions can be estimated on top of an existing and trained neural network, by adding a state space-based last layer whose parameters are estimated with Sequential Monte Carlo methods.
 	We apply our proposed methodology to the hourly estimation of Electricity Transformer Oil temperature, a publicly benchmarked dataset.
@@ -58,7 +58,7 @@ However, these frequentist approaches fail to guarantee proper calibration of th
 In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains and end-to-end a deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
 
 
-Inspired by  \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning for dependent data.  This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, in such a setting, the loglikelihood of the observations is not available explicitly and approximate sampling methods are required for the second training stage.   In this paper, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{Ma2020}.
+Inspired by  \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning for dependent data.  This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, in such a setting, the loglikelihood of the observations is not available explicitly and approximate sampling methods are required for the second training stage.   In this letter, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{Ma2020}.
 We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
 Particle filters have also proven reliable in other fields, such as presented in \cite{Liu2020LSTMPF} for object tracking.
 
@@ -93,18 +93,18 @@ For all $t \geq 1$, the model is defined as:
 \end{equation*}
 We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
 $\varphi$ is the set of unknown parameters associated with the input model.
-In this paper, we focus on settings where $h_\varphi$ is an arbitrary multi-layer neural network, and $(g_\theta, f_\theta)$ are non linear transformations.
+In this letter, we focus on settings where $h_\varphi$ is an arbitrary multi-layer neural network, and $(g_\theta, f_\theta)$ are non linear transformations.
 Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
 We therefore propose to first train the input model following classical deep learning approaches and then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
 
 \subsection{Input model}%
 \label{sub:input_model}
-In this paper, we chose a multi-layered GRU network as the input model, such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
+In this letter, we chose a multi-layered GRU network as the input model, such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
 $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
 where the first layer is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$, and $\widetilde U^\ell_0 \equiv 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
-The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model.
+The first step of the decoupling procedure proposed in this letter is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model.
 This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{input}}$ using stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
 The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameters $\widehat \theta$ is used as an initial estimate for the inference of the state space layer.
 All details on the training of the input model are postponed to Section~\ref{sec:exp}.
@@ -113,12 +113,12 @@ All details on the training of the input model are postponed to Section~\ref{sec
 \label{sub:uncertainty_estimation}
 
 Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly, as it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
-In this paper we use Fisher's identity to propose a Monte Carlo estimator of the score function:
+In this letter we use Fisher's identity to propose a Monte Carlo estimator of the score function:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
 \end{equation}
-where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this paper. %A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
+where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this letter. %A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
 %This is a challenging issue as more and more practical cases are modeled using high dimensional state spaces (which means high dimensional integrals in \eqref{eq:def:smoothing}) and produce huge data sets (which means that $n$ is large and implies great storage and computational costs). Online parameter inference, which computes new parameter estimates on-the-fly as observations are received, also implies additional computational constraints which rules out a vast majority of standard maximum likelihood procedures. This chapter highlights some recent results on the analysis of the approximation of smoothing distributions using Sequential Monte Carlo (SMC) methods and their applications to (online) parameter inference.
 %Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
 The auxiliary particle filter introduced in \cite{Jun1998} produces first recursively a set of states $(\xi^{\ell}_t)_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_t)_{\ell=1}^N$ using importance sampling and resampling steps.
@@ -132,7 +132,7 @@ Using the model provided in Section~\ref{sub:proposed_architecture}, estimating 
 %	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
 %\end{align*}
 %The Poor man's smoother
-Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. %In this paper, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
+Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. %In this letter, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
 %\begin{align*}
 %	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y| \\
 %	 & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i)) \\
@@ -261,7 +261,7 @@ We also experimented with a linear Hidden Markov Model (HMM), without reaching p
 \section{Conclusion}%
 \label{sec:conclusion}
 
-In this paper, we introduced a decoupled architecture for uncertainty estimation on a time series dataset.
+In this letter, we introduced a decoupled architecture for uncertainty estimation on a time series dataset.
 Our deep neural network backbone is responsible for extracting high level features, while particle filtering allows modelling recurrent non linear uncertainty.
 Our proposed model improves confidence interval quality, compared to MC Dropout methods, while remaining simple and efficient to train, compared to VI alternatives.
 
