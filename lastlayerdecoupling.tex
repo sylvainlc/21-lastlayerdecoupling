@@ -76,7 +76,7 @@ Particle filters have also proven reliable in other fields, such as presented in
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$.
 Let $T\ge 1$ be a given time horizon.
 We consider the regression task over observations $Y_{1:T}$ associated with the inputs $U_{1:T}$.
-Traditionaly, at each time $t$, a state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform of $h_t \mapsto o_t = f_\theta(h_t)$, where $\theta$ are real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions.
+Traditionaly, at each time $t$, a state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform $f_\theta(h_t)$, where $\theta$ is a set of real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions.
 The parameters are usually trained using stochastic gradient based algorithms with a regularized mean squared error loss function.
 
 In our approach, we introduce a sequence $X_{1:T}$ of stochastic hidden states in the last layer of the model.
@@ -91,7 +91,8 @@ For all $t \geq 1$, the model is defined as:
 	\end{aligned}
 	\right.
 \end{equation*}
-We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, and $\varphi$ and $\theta$ are unknown parameters, although any distribution can be substituted.
+We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
+$\varphi$ is the set of unknown parameters associated with the input model.
 In this paper, we focus on settings where $h_\varphi$ is an arbitrary multi-layer neural network, and $(g_\theta, f_\theta)$ are non linear transformations.
 Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
 We therefore propose to first train the input model following classical deep learning approaches and then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
@@ -102,16 +103,16 @@ In this paper, we chose a multi-layered GRU network as the input model, such tha
 $$
 	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
 $$
-where the first layer is assimilated to the input vectors, $\widetilde U_t^0 = U_t$, and $\widetilde U^\ell_0 = 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
+where the first layer is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$, and $\widetilde U^\ell_0 \equiv 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
 The first step of the decoupling procedure proposed in this paper is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model.
-This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{inp}}$ using stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
-The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameter $\widehat \theta$ is used as an initial estimate for the inference of the state space layer.
+This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{input}}$ using stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
+The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameters $\widehat \theta$ is used as an initial estimate for the inference of the state space layer.
 All details on the training of the input model are postponed to Section~\ref{sec:exp}.
 
 \subsection{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 
-Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly since, it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
+Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly, as it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
 In this paper we use Fisher's identity to propose a Monte Carlo estimator of the score function:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
@@ -183,7 +184,7 @@ where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observ
 
 \subsection{Data}
 \label{sub:data}
-We benchmarked our approach on the public Electricity Transformer Temperature (ETT) Dataset, designed in \cite{Zhou2021Informer} around the forecasting of Oil Temperature based on hourly power load records (ETTh1 subset).
+We benchmarked our approach on the public Electricity Transformer Temperature (ETT) Dataset, designed in \cite{Zhou2021Informer} around the forecasting of Oil temperature based on hourly power load records (ETTh1 subset).
 We drew samples composed of a 24 hour long lookback window, where models have access to both commands and observations, followed by a 24 hour long forecasting period, where their performances are compared to the ground truth.
 
 \subsection{Training}%
