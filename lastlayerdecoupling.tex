@@ -190,7 +190,16 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 \subsection{Training}%
 \label{sub:training}
 
-\textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}, with an input dimension of $d_\textnormal{in}=6$ corresponding to the number of power load records of the dataset, and an output dimension of 6 as well.
+\textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}: for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
+\begin{align*}
+	r^\ell_t & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr}) \\ 
+	z^\ell_t & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz}) \\ 
+	n^\ell_t & = tanh(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\ 
+	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
+\end{align*}
+where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters.
+% where $\varphi = \{W_{ir}, b_{ir}, W_{hr}, b_{hr}, W_{iz}, b_{iz}, W_{hz}, b_{hz}, W_{in}, b_{in}, W_{hn}, b_{hn}\}$ are unknown parameters
+The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6 as well.
 In order to estimate the parameters $\varphi$, we add an additional GRU layer responsible for computing oil temperature predictions.
 During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
