@@ -6,14 +6,14 @@
 \usepackage{hyperref} % Links
 \usepackage{graphicx} % Include graphics
 \usepackage[ruled,vlined]{algorithm2e}
-\usepackage{booktabs}
+\usepackage{booktabs,xcolor}
 \graphicspath{ {./images/} }
 
 \title{Last layer state space model for representation learning and uncertainty quantification}
 
 \author{Max Cohen, Maurice Charbit and Sylvain Le Corff
 	\thanks{This work was supported by grants from Région Ile-de-France.}
-	\thanks{Max Cohen and Sylvain Le Corff are with Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris, (e-mail: \{max.cohen, sylvain.le\_corff\}@telecom-sudparis.eu).}
+	\thanks{Max Cohen is with with Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris, (e-mail: \{max.cohen, sylvain.le\_corff\}@telecom-sudparis.eu).}
 	\thanks{Maurice Charbit is with Accenta, Boulogne-Billancourt (e-mail: mch@oze-energies.com).}}
 
 \begin{document}
@@ -55,7 +55,7 @@ In the following years, MC Dropout methods have been applied in many industrial 
 Alternatively, ensemble methods consists in training distinct networks to obtain a combined prediction, as shown in \cite{Pearce2018}.
 However, these frequentist approaches fail to guarantee proper calibration of the model, as highlighted by \cite{ashukha2020pitfalls}, and suffer various limitations, see \cite{Fong2020}.
 
-In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains and end-to-end a deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
+In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains a  deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
 
 
 Inspired by  \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning for dependent data.  This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, in such a setting, the loglikelihood of the observations is not available explicitly and approximate sampling methods are required for the second training stage.   In this letter, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{Ma2020}.
@@ -87,12 +87,12 @@ For all $t \geq 1$, the model is defined as:
 	\begin{aligned}
 		\widetilde U_t & = h_\varphi(U_t)                             & \text{input model, }       \\
 		X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }       \\
-		Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model, } \\
+		Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model. } \\
 	\end{aligned}
 	\right.
 \end{equation*}
 We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
-$\varphi$ is the set of unknown parameters associated with the input model.
+The parameter $\varphi$ contains all unknown weights and biases associated with the input model.
 In this letter, we focus on settings where $h_\varphi$ is an arbitrary multi-layer neural network, and $(g_\theta, f_\theta)$ are non linear transformations.
 Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
 We therefore propose to first train the input model following classical deep learning approaches and then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
@@ -118,7 +118,7 @@ In this letter we use Fisher's identity to propose a Monte Carlo estimator of th
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
 \end{equation}
-where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$. The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this letter. %A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
+where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$ (the dependency on the input $U_{1:T}$ is kept implicit here for better clarity). The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this letter. %A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
 %This is a challenging issue as more and more practical cases are modeled using high dimensional state spaces (which means high dimensional integrals in \eqref{eq:def:smoothing}) and produce huge data sets (which means that $n$ is large and implies great storage and computational costs). Online parameter inference, which computes new parameter estimates on-the-fly as observations are received, also implies additional computational constraints which rules out a vast majority of standard maximum likelihood procedures. This chapter highlights some recent results on the analysis of the approximation of smoothing distributions using Sequential Monte Carlo (SMC) methods and their applications to (online) parameter inference.
 %Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
 The auxiliary particle filter introduced in \cite{Jun1998} produces first recursively a set of states $(\xi^{\ell}_t)_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_t)_{\ell=1}^N$ using importance sampling and resampling steps.
@@ -173,11 +173,15 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 %\end{algorithm}
 
 \subsection{Stochastic Gradient Descent for online estimation}
-An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. The algorithm produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
+An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$.  In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
+
+In state space models, recursive maximum likelihood estimation produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
 $$
 	\theta_{k} = \theta_{k-1} + \gamma_k \nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1}) \,,
 $$
-where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{}. Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
+where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\nabla_\theta\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{gloaguen2022pseudo}. The PaRIS algorithm proposed in \cite{Olsson2014EfficientPO} allows to use the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ and some statistics  $\{\tau^{\ell}_k\}_{\ell=1}^N$ on-the-fly to approximate $\nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1})$ either using rejection sampling approaches or importance sampling steps.
+
+Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
 
 \section{Experiments}
 \label{sec:exp}
@@ -194,7 +198,7 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 \begin{align*}
 	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr})        \\
 	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz})        \\
-	n^\ell_t        & = tanh(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\
+	n^\ell_t        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\
 	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
 \end{align*}
 where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters.
@@ -203,11 +207,19 @@ The input dimension $d_\textnormal{in}=6$ corresponds to the number of power loa
 In order to estimate the parameters $\varphi$, we add an additional GRU layer responsible for computing oil temperature predictions.
 During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
-\textbf{The Sequential Monte Carlo layer} uses the simple Path-space smoother where, writing $\xi_{1:T}^i$ the ancestral trajectory of $\xi_T^i$ for all $1\leq i \leq N$, we can approximate \eqref{eq:grad_ll} with:
+\textbf{The Sequential Monte Carlo layer} uses the simple Path-space smoother.  At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from the instrumental density $\rho_0$  and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight: \textcolor{red}{quelle distribution initiale $\chi$ et quelle facon de simuler $\rho_0$}
+\[
+\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)\,,
+\]
+where $\ell_0(\cdot)$ is the Gaussian probability density function with mean $Y_0$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles  from the instrumental distribution: 
+\[
+\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell}  p_k(\xi^{\ell}_{k-1},x)\,.
+\]
+In this application we use for $p_k(\xi^{\ell}_{k-1},\cdot)$ the prior kernel, i.e. the Gaussian distribution with mean $g_{\theta}(\xi^{\ell}_{k-1},\tilde U_k)$ and variance $\Sigma_x$.  For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the following importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot)$ is the Gaussian probability density function with mean $Y_k$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. We can approximate \eqref{eq:grad_ll} with:
 $$
-	\widehat {\nabla_\theta \log p_\theta(Y_{1:T})_k^N} = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,.
+	\widehat {\nabla_\theta \log p_\theta(Y_{1:T})_k^N} = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,,
 $$
-During forecasting, we implemented a bootstrap filter where particles are sampled from the prior model and weighted with the observation model.
+where $\xi^i_{1:T}$ is the ancestral line of $\xi^i_{T}$. During forecasting, we implemented a bootstrap filter where particles are sampled from the prior model and weighted with the observation model.
 All following experiments were computed with $N=100$ particles.
 
 \subsection{Trainings}
