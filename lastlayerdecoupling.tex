@@ -43,7 +43,7 @@ However, many critical applications, such as medical diagnosis or drug design di
 Fostering the dissemination of deep learning-based algorithms to such fields requires to design new approaches for uncertainty quantification.
 
 In this context, Bayesian statistics enables approximating the distributions of future observations and to provide uncertainty estimation \cite{Hinton1995BayesianLF}.
-Several architectures inspired by Variational Inference (VI) emerged by considering latent states as random variables and approximating their posterior distribution.
+Several architectures inspired by Variational Inference (VI, see \cite{Jordan2004AnIT}) emerged by considering latent states as random variables and approximating their posterior distribution.
 The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
 Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
 %Similarly, introducing random variables directly into a neural network weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
@@ -187,14 +187,14 @@ where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observ
 We benchmarked our approach on the public Electricity Transformer Temperature (ETT) Dataset, designed in \cite{Zhou2021Informer} around the forecasting of Oil temperature based on hourly power load records (ETTh1 subset).
 We drew samples composed of a 24 hour long lookback window, where models have access to both commands and observations, followed by a 24 hour long forecasting period, where their performances are compared to the ground truth.
 
-\subsection{Training}%
-\label{sub:training}
+\subsection{Models}%
+\label{sub:models}
 
 \textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}: for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
 \begin{align*}
-	r^\ell_t & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr}) \\ 
-	z^\ell_t & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz}) \\ 
-	n^\ell_t & = tanh(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\ 
+	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr})        \\
+	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz})        \\
+	n^\ell_t        & = tanh(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\
 	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
 \end{align*}
 where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters.
@@ -209,6 +209,12 @@ $$
 $$
 During forecasting, we implemented a bootstrap filter where particles are sampled from the prior model and weighted with the observation model.
 All following experiments were computed with $N=100$ particles.
+
+\subsection{Trainings}
+\label{sub:trainings}
+All training experiments are conducted with a batch size of 32, using the Adam optimizer introduced in \cite{Kingma2015AdamAM}.
+The learning rate was chosen using a simple grid search.
+We train models for a maximum of 50 epochs, and employ early stopping to prevent overfit.
 
 \subsection{Evaluations}%
 \label{sub:evaluations}
