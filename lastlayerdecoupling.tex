@@ -69,47 +69,37 @@ Particle filters have also proven reliable in other fields, such as presented in
 
 \section{Last layer decoupling}
 \label{sec:decoupling}
-
-\subsection{Proposed model}%
-\label{sub:proposed_architecture}
+Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
+We therefore propose to first train an input model following traditional deep learning approaches, then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
 
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$.
 Let $T\ge 1$ be a given time horizon.
 We consider the regression task over observations $Y_{1:T}$ associated with the inputs $U_{1:T}$.
-At each time $t$, a state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform $f_\theta(h_t)$, where $\theta$ is a set of real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions.
-The parameters are trained using stochastic gradient based algorithms with a regularized mean squared error loss function.
 
-In our approach, we introduce a sequence $X_{1:T}$ of stochastic hidden states in the last layer of the model.
-An input model $h_\varphi$ is responsible for extracting high level features from the input time series. Then, the final hidden states of this network are fed to a state space layer.
+\subsection{Representation learning}%
+In this letter, we consider an arbitrary multi-layer neural network $h$ with unknown parameters $\varphi$, responsible for extracting high level features from the input time series:
+\begin{align}
+	\widetilde U_{1:T} & = h_\varphi(U_{1:T})& \text{input model}
+\end{align}
+In order to get an estimate $\hat \varphi$, we introduce an auxiliary function $k_\psi$ and generate predictions $\hat Y_t = k_\psi(Y_{t-1}, \widetilde U_t)\,, \forall 1 \leq t \leq T$.
+The input model can then be trained by performing gradient descent to minimize the prediction error, before discarding the auxiliary function.
+
+\subsection{State space model}
+We define a state space model taking as input the previously extracted features $\widetilde U_{1:T}$.
+Let $X_{1:T}$ a sequence of stochastic hidden states computed recursively and $Y_t$ their associated predictions.
 For all $t \geq 1$, the model is defined as:
-\begin{equation*}
-	\left\{
-	\begin{aligned}
-		\widetilde U_t & = h_\varphi(U_t)                             & \text{input model, }       \\
-		X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }       \\
-		Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model. } \\
-	\end{aligned}
-	\right.
-\end{equation*}
+\begin{align}
+	X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }       \\
+	Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model. }
+\end{align}
+where $\theta$ is a set of real-valued parameters of the networks (weights and biases) and $f_\theta$ and $g_\theta$ are non linear parametric functions.
 We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
-The parameter $\varphi$ contains all unknown weights and biases associated with the input model.
-In this letter, we focus on settings where $h_\varphi$ is an arbitrary multi-layer neural network, and $(g_\theta, f_\theta)$ are non linear transformations.
-Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
-We therefore propose to first train the input model following classical deep learning approaches and then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
 
-\subsection{Input model}%
-\label{sub:input_model}
-In this letter, we chose a multi-layered GRU network as the input model, such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
-$$
-	\tilde U^\ell_t = k_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})\,,
-$$
-where the first layer is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$, and $\widetilde U^\ell_0 \equiv 0$. The specific choice of functions $ k_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
-The first step of the decoupling procedure proposed in this letter is to estimate all parameters by considering the entire model as a deterministic neural network, i.e. by ignoring the noises $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ in the model.
-This step can be performed efficiently by minimizing a loss unction $\mathcal{L}_{\mathrm{input}}$ using stochastic gradient descent to obtain a first set of estimators $\widehat \varphi$ and $ \widehat \theta$.
-The input model weights $\widehat \varphi$ are kept fixed in the following section, while the parameters $\widehat \theta$ is used as an initial estimate for the inference of the state space layer.
-All details on the training of the input model are postponed to Section~\ref{sec:exp}.
+This decoupled approach aims at reducing the number of parameters in $\theta$, compared to $\varphi$, in order to estimate them using Sequential Monte Carlo methods.
+In the next section, we describe this second training procedure for the last layer only, by keeping $\hat \varphi$ fixed.
+All implementation and training details are postponed to Section~\ref{sec:exp}.
 
-\subsection{Sequential Monte Carlo Layer}%
+\section{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 
 Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly, as it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
@@ -133,44 +123,6 @@ Using the model provided in Section~\ref{sub:proposed_architecture}, estimating 
 %\end{align*}
 %The Poor man's smoother
 Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. %In this letter, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
-%\begin{align*}
-%	\mathbb{J}(\theta) & = \log |\Sigma_x| + \log |\Sigma_y| \\
-%	 & + \frac{1}{T}\sum_{k=0}^T \sum_{i=1}^N \omega^i (y_k - f_\theta(\xi_k^i))' \Sigma_y^{-1} (y_k - f_\theta(\xi_k^i)) \\
-%	 & + \frac{1}{T}\sum_{k=1}^T \sum_{i=1}^N \omega^i (\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))'\Sigma_x^{-1}(\xi_k^i - g_\theta(\xi_{k-1}^i, u_k))
-%\end{align*}
-%During the estimation of $\theta$, the input model is frozen, i.e. we stop gradient computation for $\varphi$. Both $\Sigma_x$ and $\Sigma_y$ are updated by an explicit EM, as gradient descent for these parameters proved unstable.
-
-% \begin{algorithm}
-% 	\KwIn{$Y_{1:T}, \widetilde U_{1:T}$}
-% 	\KwOut{$\xi_{1:T}^{1:N}$}
-% 	$\xi_0^i \gets \eta^i$\;
-% 	\For{$t \gets 0$ \KwTo $T$}{
-% 		$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
-% 		$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
-% 		$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
-% 	}
-% 	\caption{Particle filter. $\varphi_{\mu, \Sigma}$ is the multivariate normal density function with mean $\mu$ and covariance matrix $\Sigma$.}
-% 	\label{algo:particle_filter}
-% \end{algorithm}
-
-%\begin{algorithm}
-%	\KwIn{Observations and inputs $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$. Initial estimates of $\varphi$, $\theta$.}
-%	%\KwOut{$\xi_{1:T}^{1:N}$}
-%	Estimate $(\widehat\varphi,\widehat\theta)$ by training the deterministic neural network with loss $\mathcal{L}_{\mathrm{inp}}$ and data $(Y^k_{1:T},U^k_{1:T})_{k=1}^{N_{\texttt{sample}}}$\;
-%	Initialize $\widetilde \theta_0 = \widehat \theta$, $\Sigma_x$ and $\Sigma_y$\;
-%	\For{each batch $1\leq k\leq N_{\texttt{sample}}$}{
-%		Compute a SMC estimate $\widehat S_k^N$ of the score \eqref{eq:grad_ll}\;
-%		Compute $\widetilde \theta_{k+1}$ and update $\Sigma_x$ and $\Sigma_y$ by stochastic gradient descent using $\widehat S_k^N$\;
-%	}
-%	%$\xi_0^i \gets \eta^i$\;
-%	%\For{$t \gets 0$ \KwTo $T$}{
-%	%	$\omega_t^i \gets \varphi_{y_t, \Sigma_y}(f_\theta(\xi_t^i))$\;
-%	%	$I_{t+1}^i \sim \mathbb{P}(I_{t+1}^i=j) = \omega_t^j$\;
-%	%	$\xi_{t+1}^i \gets g_\theta(\xi_t^{I_{t+1}^i}, \tilde u_{t+1}, \eta^i)$\;
-%	%}
-%	\caption{Estimation of the two blocks.}
-%	\label{algo:allsteps}
-%\end{algorithm}
 
 \subsection{Stochastic Gradient Descent for online estimation}
 An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
@@ -185,6 +137,8 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 
 \section{Experiments}
 \label{sec:exp}
+
+We chose a multi-layered GRU network, such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$, $ \tilde U^\ell_t = h_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})$, where the first layer is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$, and $\widetilde U^\ell_0 \equiv 0$. The specific choice of functions $ h_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
 
 \subsection{Data}
 \label{sub:data}
@@ -202,6 +156,7 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
 \end{align*}
 where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters.
+% TODO input model loss function is MSE
 % where $\varphi = \{W_{ir}, b_{ir}, W_{hr}, b_{hr}, W_{iz}, b_{iz}, W_{hz}, b_{hz}, W_{in}, b_{in}, W_{hn}, b_{hn}\}$ are unknown parameters
 The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6 as well.
 In order to estimate the parameters $\varphi$, we add an additional GRU layer responsible for computing oil temperature predictions.
