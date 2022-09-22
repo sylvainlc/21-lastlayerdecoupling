@@ -42,7 +42,7 @@ Current deep learning frameworks allow stacking arbitrary high number of recurre
 However, many critical applications, such as medical diagnosis or drug design discovery, require not only accurate predictions, but a good estimate of their uncertainty (\cite{Crowson2016AssessingCalibration, Mervin2020UncertaintyQuantification}).
 Fostering the dissemination of deep learning-based algorithms to such fields requires to design new approaches for uncertainty quantification.
 
-In this context, Bayesian statistics enables approximating the distributions of future observations and to provide uncertainty estimation \cite{Hinton1995BayesianLF}.
+In this context, Bayesian statistics are able to approximate the distributions of future observations and to provide uncertainty estimation \cite{Hinton1995BayesianLF}.
 Several architectures inspired by Variational Inference (VI, see \cite{Jordan2004AnIT}) emerged by considering latent states as random variables and approximating their posterior distribution.
 The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
 Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
@@ -51,14 +51,14 @@ In \cite{Blundell2015}, the authors considered weights as random variables and p
 
 %Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as its training mechanism.
 Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by leveraging Dropout during both training and evaluation tasks, producing variable predictions from a single trained recurrent model, see \cite{Gal2016NIPS}.
-In the following years, MC Dropout methods have been applied in many industrial fields, such as flight delay prediction (\cite{Vandal2018}) or molecular simulations (\cite{Wen2020UncertaintyQI}).
-Alternatively, ensemble methods consists in training distinct networks to obtain a combined prediction, as shown in \cite{Pearce2018}.
+In the following years, MC Dropout methods have been applied in many industrial fields, such as flight delay prediction \cite{Vandal2018} or molecular simulations \cite{Wen2020UncertaintyQI}.
+Alternatively, ensemble methods consist in training distinct networks to obtain a combined prediction, as shown in \cite{Pearce2018}.
 However, these frequentist approaches fail to guarantee proper calibration of the model, as highlighted by \cite{ashukha2020pitfalls}, and suffer various limitations, see \cite{Fong2020}.
 
-In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains a  deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
+In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains a deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
 
 
-Inspired by  \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning for dependent data.  This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, in such a setting, the loglikelihood of the observations is not available explicitly and approximate sampling methods are required for the second training stage.   In this letter, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{Ma2020}.
+Inspired by \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning, in the context of dependent data. This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, because the log likelihood of the observations is not available explicitly in such a setting, the second stage training requires using approximate sampling methods. In this letter, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{Ma2020}.
 We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
 Particle filters have also proven reliable in other fields, such as presented in \cite{Liu2020LSTMPF} for object tracking.
 
@@ -76,8 +76,8 @@ Particle filters have also proven reliable in other fields, such as presented in
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$.
 Let $T\ge 1$ be a given time horizon.
 We consider the regression task over observations $Y_{1:T}$ associated with the inputs $U_{1:T}$.
-Traditionaly, at each time $t$, a state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform $f_\theta(h_t)$, where $\theta$ is a set of real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions.
-The parameters are usually trained using stochastic gradient based algorithms with a regularized mean squared error loss function.
+At each time $t$, a state $h_t$ is computed recursively: $h_t = g_\theta(h_{t-1},U_t)$ and $Y_t$ is predicted by a transform $f_\theta(h_t)$, where $\theta$ is a set of real-valued parameters of the networks (weights and bias) and $f_\theta$ and $g_\theta$ are parametric functions.
+The parameters are trained using stochastic gradient based algorithms with a regularized mean squared error loss function.
 
 In our approach, we introduce a sequence $X_{1:T}$ of stochastic hidden states in the last layer of the model.
 An input model $h_\varphi$ is responsible for extracting high level features from the input time series. Then, the final hidden states of this network are fed to a state space layer.
@@ -173,13 +173,13 @@ Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss functio
 %\end{algorithm}
 
 \subsection{Stochastic Gradient Descent for online estimation}
-An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$.  In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
+An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
 
 In state space models, recursive maximum likelihood estimation produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
 $$
 	\theta_{k} = \theta_{k-1} + \gamma_k \nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1}) \,,
 $$
-where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\nabla_\theta\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{gloaguen2022pseudo}. The PaRIS algorithm proposed in \cite{Olsson2014EfficientPO} allows to use the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ and some statistics  $\{\tau^{\ell}_k\}_{\ell=1}^N$ on-the-fly to approximate $\nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1})$ either using rejection sampling approaches or importance sampling steps.
+where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\nabla_\theta\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{gloaguen2022pseudo}. The PaRIS algorithm proposed in \cite{Olsson2014EfficientPO} allows to use the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ and some statistics $\{\tau^{\ell}_k\}_{\ell=1}^N$ on-the-fly to approximate $\nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1})$ either using rejection sampling approaches or importance sampling steps.
 
 Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
 
@@ -196,8 +196,8 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 
 \textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}: for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
 \begin{align*}
-	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr})        \\
-	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz})        \\
+	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr})                 \\
+	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz})                 \\
 	n^\ell_t        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\
 	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
 \end{align*}
@@ -207,15 +207,15 @@ The input dimension $d_\textnormal{in}=6$ corresponds to the number of power loa
 In order to estimate the parameters $\varphi$, we add an additional GRU layer responsible for computing oil temperature predictions.
 During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
-\textbf{The Sequential Monte Carlo layer} uses the simple Path-space smoother.  At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from the instrumental density $\rho_0$  and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight: \textcolor{red}{quelle distribution initiale $\chi$ et quelle facon de simuler $\rho_0$}
+\textbf{The Sequential Monte Carlo layer} uses the simple Path-space smoother. At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from the instrumental density $\rho_0$ and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight: \textcolor{red}{quelle distribution initiale $\chi$ et quelle facon de simuler $\rho_0$}
 \[
-\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)\,,
+	\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)\,,
 \]
-where $\ell_0(\cdot)$ is the Gaussian probability density function with mean $Y_0$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles  from the instrumental distribution: 
+where $\ell_0(\cdot)$ is the Gaussian probability density function with mean $Y_0$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
 \[
-\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell}  p_k(\xi^{\ell}_{k-1},x)\,.
+	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},x)\,.
 \]
-In this application we use for $p_k(\xi^{\ell}_{k-1},\cdot)$ the prior kernel, i.e. the Gaussian distribution with mean $g_{\theta}(\xi^{\ell}_{k-1},\tilde U_k)$ and variance $\Sigma_x$.  For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the following importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot)$ is the Gaussian probability density function with mean $Y_k$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. We can approximate \eqref{eq:grad_ll} with:
+In this application we use for $p_k(\xi^{\ell}_{k-1},\cdot)$ the prior kernel, i.e. the Gaussian distribution with mean $g_{\theta}(\xi^{\ell}_{k-1},\tilde U_k)$ and variance $\Sigma_x$. For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the following importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot)$ is the Gaussian probability density function with mean $Y_k$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. We can approximate \eqref{eq:grad_ll} with:
 $$
 	\widehat {\nabla_\theta \log p_\theta(Y_{1:T})_k^N} = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,,
 $$
