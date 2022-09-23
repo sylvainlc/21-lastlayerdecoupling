@@ -203,6 +203,13 @@ We also experimented with a linear Hidden Markov Model (HMM), without reaching p
 
 \begin{figure}[htpb]
 	\centering
+	\caption{Our architecture combining a generic input model with a state space model on the last layer.}
+	\includegraphics[width=\linewidth]{architecture.png}
+	\label{fig:architecture}
+\end{figure}
+
+\begin{figure}[htpb]
+	\centering
 	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($t<24$) and without ($t>24$).
 		Since re sampling of particles is no longer available at that point, the uncertainty grows for our model.
 		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).
