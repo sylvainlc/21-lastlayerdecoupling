@@ -68,12 +68,12 @@ Particle filters have also proven reliable in other fields, such as presented in
 %Our uncertainty estimation layer can thus be built on top of an existing, already trained model. The model is presented in Section~\ref{sec:decoupling} and numerical experiments are displayed in Section~\ref{sec:exp}.
 
 \section{Last layer decoupling}
-\label{sec:decoupling}
 Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
 We therefore propose to first train an input model following traditional deep learning approaches, then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
 
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$.
 Let $T\ge 1$ be a given time horizon.
+Lastly, we denote by $\Psi_{\mu, \Sigma}$ the Gaussian probability density function with mean $\mu$ and covariance matrix $\Sigma$.
 We consider the regression task over observations $Y_{1:T}$ associated with the inputs $U_{1:T}$.
 
 \subsection{Representation learning}%
@@ -85,6 +85,7 @@ In order to get an estimate $\hat \varphi$, we introduce an auxiliary function $
 The input model can then be trained by performing gradient descent to minimize the prediction error, before discarding the auxiliary function.
 
 \subsection{State space model}
+\label{sub:proposed_architecture}
 We define a state space model taking as input the previously extracted features $\widetilde U_{1:T}$.
 Let $X_{1:T}$ a sequence of stochastic hidden states computed recursively and $Y_t$ their associated predictions.
 For all $t \geq 1$, the model is defined as:
@@ -101,28 +102,38 @@ All implementation and training details are postponed to Section~\ref{sec:exp}.
 
 \section{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
-
-Estimating the parameter $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture} from a record of observations $Y_{1:T}$ is challenging as the loglikelihood of the observations is not available explicitly, as it requires an integration over the distribution of the hidden states $X_{1:T}$. Consequently, the computation of the score function is intractable.
-In this letter we use Fisher's identity to propose a Monte Carlo estimator of the score function:
+In this section, we detail how to estimate the parameters $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture}, from a record of observations $Y_{1:T}$.
+This is challenging because the log likelihood of the observations is not available explicitly, as it would require integrating over the distribution of the hidden states $X_{1:T}$.
+Consequently, the score function is intractable.
+We propose to optimize a Monte Carlo estimator of this score function, using Fisher's identity:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
 \end{equation}
-where $\mathbb{E}_\theta$ design the expectation under the model of Section~\ref{sub:proposed_architecture} parameterized by $\widehat \varphi$ and $\theta$ (the dependency on the input $U_{1:T}$ is kept implicit here for better clarity). The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model proposed in this letter. %A solution to approximate \eqref{eq:grad_ll} is to obtain expectedly low variance Monte Carlo estimates of the smoothed expectation.
-%This is a challenging issue as more and more practical cases are modeled using high dimensional state spaces (which means high dimensional integrals in \eqref{eq:def:smoothing}) and produce huge data sets (which means that $n$ is large and implies great storage and computational costs). Online parameter inference, which computes new parameter estimates on-the-fly as observations are received, also implies additional computational constraints which rules out a vast majority of standard maximum likelihood procedures. This chapter highlights some recent results on the analysis of the approximation of smoothing distributions using Sequential Monte Carlo (SMC) methods and their applications to (online) parameter inference.
-%Sequential Monte Carlo methods aim at approximating this posterior by a set of $N$ weighted random trajectories.
-The auxiliary particle filter introduced in \cite{Jun1998} produces first recursively a set of states $(\xi^{\ell}_t)_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_t)_{\ell=1}^N$ using importance sampling and resampling steps.
-At each time step $t$, the weighted samples $\{(\xi^{\ell}_t,\omega^{\ell}_t)\}_{\ell=1}^N$ approximate the filtering distribution at time $t$, i.e. the conditional distribution of $X_t$ given $Y_{0:t}$.
-%At each time step $1\leq t \leq T$, these particles $\xi^{1:N}_t$ are associated likelihood weights $\omega^{1:N}_t$,
-%The propagation and selection steps are recalled in Algorithm~\ref{algo:particle_filter}.
+where $\mathbb{E}_\theta$ design the expectation under the model parameterized by $\widehat \varphi$ and $\theta$ (the dependency on the input $U_{1:T}$ is kept implicit here for better clarity).
+
+The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model, but it can be approximated using a family of particles $(\xi^{\ell}_{1:T})_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_T)_{\ell=1}^N$.
+% We first produce a set of histories  associated with importance weights  using the Path-space smoother.
+At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight:
+\[
+	\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)\,,
+\]
+% TODO X is rho_0
+where $\ell_0(\cdot) = \Psi_{Y_0, \Sigma_y}(f_\theta(\cdot))$.
+Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
+\[
+	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},x)\,.
+\]
+In this application we use for $p_k(\xi^{\ell}_{k-1},\cdot)$ the prior kernel $\Psi_{g_\theta(\xi^\ell_{k-1}, \tilde U_k), \Sigma_x}$.
+For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot) = \Psi_{Y_k, \Sigma_y}(f_\theta(\cdot))$.
+
 Based on this particle filter, any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Using the model provided in Section~\ref{sub:proposed_architecture}, estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional so that very efficient forward-only SMC smoothers can also be used such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
-%Such algorithms allow to approximate, for any function $h$, any smoothing expectation as follows:
-%\begin{align*}
-%	\mathbb{E}_\theta \left[ h(X_{1:T}) | Y_{1:T} \right] = \sum_{i=1}^N \omega_T^i h(\xi^i_{1:T})\,.
-%\end{align*}
-%The Poor man's smoother
-Plugging such an estimate in \ref{eq:grad_ll} provides and explicit loss function to estimate $\theta$ which can be computed using deep learning frameworks through automated differentiation. %In this letter, we use a simple Sequential Monte Carlo smoother to illustrate the performance of the proposed methodology. %. \textcolor{red}{Dire un mot sur le fait que les SMC sont durs à calibrer en grande dimension, mais qu'ils sont justement appropriés dans ce contexte où seul un bloc contient des variables bruitées.}
+Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
+For the sake of simplicity, we opt for the Path-space smoother. 
+With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the following loss function is an estimator of the score, and can be optimized by deep learning frameworks through automated differentiation:
+$$
+	\widehat {\nabla_\theta \log p_\theta(Y_{1:T})_k^N} = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,,
+$$
 
 \subsection{Stochastic Gradient Descent for online estimation}
 An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
@@ -162,19 +173,6 @@ The input dimension $d_\textnormal{in}=6$ corresponds to the number of power loa
 In order to estimate the parameters $\varphi$, we add an additional GRU layer responsible for computing oil temperature predictions.
 During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
-\textbf{The Sequential Monte Carlo layer} uses the simple Path-space smoother. At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from the instrumental density $\rho_0$ and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight: \textcolor{red}{quelle distribution initiale $\chi$ et quelle facon de simuler $\rho_0$}
-\[
-	\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)\,,
-\]
-where $\ell_0(\cdot)$ is the Gaussian probability density function with mean $Y_0$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
-\[
-	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},x)\,.
-\]
-In this application we use for $p_k(\xi^{\ell}_{k-1},\cdot)$ the prior kernel, i.e. the Gaussian distribution with mean $g_{\theta}(\xi^{\ell}_{k-1},\tilde U_k)$ and variance $\Sigma_x$. For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the following importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot)$ is the Gaussian probability density function with mean $Y_k$ and variance $\Sigma_y$, evaluated at $f_\theta(\cdot)$. We can approximate \eqref{eq:grad_ll} with:
-$$
-	\widehat {\nabla_\theta \log p_\theta(Y_{1:T})_k^N} = \sum_{i=1}^N \omega_T^i\nabla_\theta\log p_\theta(\xi^i_{1:T}, Y^{k}_{1:T})\,,
-$$
-where $\xi^i_{1:T}$ is the ancestral line of $\xi^i_{T}$. During forecasting, we implemented a bootstrap filter where particles are sampled from the prior model and weighted with the observation model.
 All following experiments were computed with $N=100$ particles.
 
 \subsection{Trainings}
