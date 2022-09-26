@@ -118,7 +118,6 @@ At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 =
 \[
 	\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)\,,
 \]
-% TODO X is rho_0
 where $\ell_0(\cdot) = \Psi_{Y_0, \Sigma_y}(f_\theta(\cdot))$.
 Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
 \[
@@ -148,9 +147,6 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 
 \section{Experiments}
 \label{sec:exp}
-
-We chose a multi-layered GRU network, such that each hidden state is computed as follows, for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$, $ \tilde U^\ell_t = h_\varphi^\ell(\widetilde U^{\ell-1}_t, \widetilde U^\ell_{t-1})$, where the first layer is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$, and $\widetilde U^\ell_0 \equiv 0$. The specific choice of functions $ h_\varphi^\ell$ are detailed in Section~\ref{sec:exp}.
-
 \subsection{Data}
 \label{sub:data}
 We benchmarked our approach on the public Electricity Transformer Temperature (ETT) Dataset, designed in \cite{Zhou2021Informer} around the forecasting of Oil temperature based on hourly power load records (ETTh1 subset).
@@ -167,12 +163,25 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
 \end{align*}
 where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters, and $\sigma$ is the sigmoid function.
-% TODO input model loss function is MSE
+The first layer of the network is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$ and $\widetilde U^\ell_0 \equiv 0$.
 % where $\varphi = \{W_{ir}, b_{ir}, W_{hr}, b_{hr}, W_{iz}, b_{iz}, W_{hz}, b_{hz}, W_{in}, b_{in}, W_{hn}, b_{hn}\}$ are unknown parameters
 The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6 as well.
 In order to estimate the parameters $\varphi$, we introduce an auxiliary GRU layer responsible for computing oil temperature predictions.
 During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_\varphi(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
+\textbf{The State Space model} is implemented using PyTorch's RNN and Linear layers, in order to use auto differentiation.
+We chose the following form for $f$ and $g$:
+\begin{align*}
+	g_\theta &: X_{t-1}, \widetilde U_t \mapsto \tanh(W_gx X_{t-1} + b_gx + W_gu \widetilde U_t + b_gu) \\
+	f_\theta &: X_t \mapsto  \sigma(W_f X_t + b_f)
+\end{align*}
+% where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f\}$ are unknown parameters.
+In this form, since the update rule for both $\Sigma_x$ and $\Sigma_y$ are available explicitly, we compute the following at each training step instead of using gradient descent:
+\begin{align*}
+	\Sigma_x &= N^{-1} \sum_{l=1}^N \sum_{k=1}^T (\tanh^{-1}(\xi_t^l) - g_{\hat \theta}(\xi^l_{t-1}, \widetilde U_t))^2 \omega_T^l \\
+	\Sigma_y &= N^{-1} \sum_{l=1}^N \sum_{k=1}^T (Y_t - f_{\hat \theta}(\xi^l_t))^2 \omega_T^l
+\end{align*}
+For the initial weights computation, we use $\chi = \rho_0$.
 All following experiments were computed with $N=100$ particles.
 
 \subsection{Trainings}
