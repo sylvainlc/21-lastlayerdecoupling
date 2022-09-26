@@ -73,7 +73,7 @@ We therefore propose to first train an input model following traditional deep le
 
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$.
 Let $T\ge 1$ be a given time horizon.
-Lastly, we denote by $\Psi_{\mu, \Sigma}$ the Gaussian probability density function with mean $\mu$ and covariance matrix $\Sigma$.
+Lastly, we denote by $\Psi_{\mu, \Sigma}$ the Gaussian probability density function with mean vector $\mu$ and covariance matrix $\Sigma$.
 We consider the regression task over observations $Y_{1:T}$ associated with the inputs $U_{1:T}$.
 
 \subsection{Representation learning}%
@@ -93,7 +93,7 @@ For all $t \geq 1$, the model is defined as:
 	X_t            & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }       \\
 	Y_t            & = f_\theta(X_t) + \epsilon_t                 & \text{observation model. }
 \end{align}
-where $\theta$ is a set of real-valued parameters of the networks (weights and biases) and $f_\theta$ and $g_\theta$ are non linear parametric functions.
+where $\theta$ is a set of real-valued parameters of the network (weights and biases) and $f_\theta$ and $g_\theta$ are non linear parametric functions.
 We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
 
 This decoupled approach aims at reducing the number of parameters in $\theta$, compared to $\varphi$, in order to estimate them using Sequential Monte Carlo methods.
@@ -112,7 +112,7 @@ We propose to optimize a Monte Carlo estimator of this score function, using Fis
 \end{equation}
 where $\mathbb{E}_\theta$ design the expectation under the model parameterized by $\widehat \varphi$ and $\theta$ (the dependency on the input $U_{1:T}$ is kept implicit here for better clarity).
 
-The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for the nonlinear state space model, but it can be approximated using a family of particles $(\xi^{\ell}_{1:T})_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_T)_{\ell=1}^N$.
+The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for a nonlinear state space model, but it can be approximated using a family of particles $(\xi^{\ell}_{1:T})_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_T)_{\ell=1}^N$.
 % We first produce a set of histories  associated with importance weights  using the Path-space smoother.
 At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight:
 \[
@@ -166,12 +166,12 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 	n^\ell_t        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\
 	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
 \end{align*}
-where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters.
+where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters, and $\sigma$ is the sigmoid function.
 % TODO input model loss function is MSE
 % where $\varphi = \{W_{ir}, b_{ir}, W_{hr}, b_{hr}, W_{iz}, b_{iz}, W_{hz}, b_{hz}, W_{in}, b_{in}, W_{hn}, b_{hn}\}$ are unknown parameters
 The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6 as well.
-In order to estimate the parameters $\varphi$, we add an additional GRU layer responsible for computing oil temperature predictions.
-During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_{\varphi,\theta}(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
+In order to estimate the parameters $\varphi$, we introduce an auxiliary GRU layer responsible for computing oil temperature predictions.
+During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_\varphi(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
 All following experiments were computed with $N=100$ particles.
 
@@ -204,7 +204,7 @@ We also experimented with a linear Hidden Markov Model (HMM), without reaching p
 \begin{figure}[htpb]
 	\centering
 	\caption{Our architecture combining a generic input model with a state space model on the last layer.}
-	\includegraphics[width=\linewidth]{architecture.png}
+	\includegraphics[width=0.7\linewidth]{architecture.png}
 	\label{fig:architecture}
 \end{figure}
 
