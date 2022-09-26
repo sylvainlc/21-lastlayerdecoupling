@@ -211,8 +211,11 @@ We train models for a maximum of 50 epochs, and employ early stopping to prevent
 \subsection{Evaluations}%
 \label{sub:evaluations}
 
-In this section, we illustrate the ability of our multi-layer model to capture the distribution of future observations.
-First, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
+In this section, we illustrate the ability of our model to capture the distribution of future observations, by evaluating the benchmarked models on the following protocol:
+we draw 48 hours long samples $(u_{1:48}, y_{1:48})$ from the validation dataset, composed of a 24 hour long lookback window $(u_{1:24}, y_{1:24})$, containing historic commands and observations, and a predictions window where only future commands are available $(u_{25:48})$.
+Each model produces a 24 hour long forecast, which is compared to the ground truth to compute the Mean Squared Error (MSE) and Mean Absolute Error (MAE) criteria $\mathcal{L}(y_{25:48}, \texttt{model}(u_{1:48}, y_{1:24}))$, reported in Table~\ref{tab:ci_comparison}.
+
+For our proposed model, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
 $$
 	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})\,,
 $$
@@ -220,10 +223,10 @@ where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$ is the pred
 Although predictions given the previous time step provide good performances, it is limited as many applications require multi-steps forecasts.
 In order to explore longer ranges, we can draw $N$ independent samples from $\sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+p}|\xi_t^i,U_{t+1:t+p})$, for $p>1$.
 As $p$ increases, the accuracy of our predictions decreases, as our model no longer has access to the observations.
-We report MSE and MAE criteria on the ETT Dataset, obtained by averaging the forecasts of these $N$ draw, in Table~\ref{tab:ci_comparison}.
+We report MSE and MAE criteria by averaging the forecasts of these $N$ draws.
 The associated confidence intervals are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 24$.
 
-We benchmark our proposed architecture with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}, with dropout values of $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
+We compared our model with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}, with dropout values of $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 The training procedure is similar to traditional recurrent models ; during inference, we draw $N=100$ samples from the dropout layers, and compute the same average forecasts and confidence intervals as our model.
 Despite being based on the same deep learning architecture, the MC dropout model is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
 We also experimented with a linear Hidden Markov Model (HMM), without reaching performances on par with the other approaches.
@@ -247,7 +250,7 @@ We also experimented with a linear Hidden Markov Model (HMM), without reaching p
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of Mean Squared Error (MSE), Mean Absolute Error (MAE) and computation time of our model against the benchmarked MC Dropout methods and HMM.
+	\caption{Comparison of MSE, MAE and computation time of our model against the benchmarked MC Dropout methods and HMM.
 		This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set.
 		Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 		Mean values of the estimators are displayed along with their variance.}
