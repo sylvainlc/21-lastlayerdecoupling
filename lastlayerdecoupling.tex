@@ -113,6 +113,7 @@ We propose to optimize a Monte Carlo estimator of this score function, using Fis
 \end{equation}
 where $\mathbb{E}_\theta$ design the expectation under the model parameterized by $\widehat \varphi$ and $\theta$ (the dependency on the input $U_{1:T}$ is kept implicit here for better clarity).
 
+\subsection{Particle filter}
 The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for a nonlinear state space model, but it can be approximated using a family of particles $(\xi^{\ell}_{1:T})_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_T)_{\ell=1}^N$.
 % We first produce a set of histories  associated with importance weights  using the Path-space smoother.
 At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight:
@@ -128,6 +129,7 @@ In this application we use for $p_k(\xi^{\ell}_{k-1},\cdot)$ the prior kernel $\
 For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot) = \Psi_{Y_k, \Sigma_y}(f_\theta(\cdot))$.
 The full particle filter algorithm is presented in Algorithm~\ref{alg:particle_filter}.
 
+\subsection{Particle smoother}
 Any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
 Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
 For the sake of simplicity, we opt for the Path-space smoother. 
