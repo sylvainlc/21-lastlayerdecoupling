@@ -176,7 +176,7 @@ We drew samples composed of a 24 hour long lookback window, where models have ac
 	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr})                 \\
 	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz})                 \\
 	n^\ell_t        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\
-	\tilde U^\ell_t & = (1-z^\ell_t) * n^\ell_t+z^\ell_t * U^\ell_{t-1}
+	\tilde U^\ell_t & = (1-z^\ell_t) n^\ell_t+z^\ell_t U^\ell_{t-1}
 \end{align*}
 where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters, and $\sigma$ is the sigmoid function.
 The first layer of the network is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$ and $\widetilde U^\ell_0 \equiv 0$.
