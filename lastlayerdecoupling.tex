@@ -14,7 +14,7 @@
 
 \author{Max Cohen, Maurice Charbit and Sylvain Le Corff
 	\thanks{This work was supported by grants from Région Ile-de-France.}
-	\thanks{Max Cohen is with with Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris, (e-mail: \{max.cohen, sylvain.le\_corff\}@telecom-sudparis.eu).}
+	\thanks{Max Cohen and Sylvain Le Corff are with with Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris, (e-mail: max.cohen@telecom-sudparis.eu).}
 	\thanks{Maurice Charbit is with Accenta, Boulogne-Billancourt (e-mail: maurice.charbit@accenta.fr).}}
 
 \begin{document}
@@ -45,10 +45,10 @@ Fostering the dissemination of deep learning-based algorithms to such fields req
 
 In this context, Bayesian statistics are able to approximate the distributions of future observations and to provide uncertainty estimation \cite{Hinton1995BayesianLF}.
 Several architectures inspired by Variational Inference (VI, see \cite{Jordan2004AnIT}) emerged by considering latent states as random variables and approximating their posterior distribution.
-The authors of \cite{Chung2015NIPS} built on a traditional RNN architecture by modelling temporal dependencies between these latent random states.
-Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
-%Similarly, introducing random variables directly into a neural network weights can mitigate overconfidence, as demonstrated by the authors of \cite{Hinton1993}.
-In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions on unseen data.
+The authors of \cite{Chung2015NIPS,10.5555/3157096.3157343} built on a traditional recurrent architecture by modelling temporal dependencies between these latent random states. Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.  
+
+
+In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions on unseen data. Such Bayesian neural networks have been proposed and studied in a variety of works, see for instance \cite{hernandez2015probabilistic,khan2018fast,teye2018bayesian}. However, these methods are computationally intensive for high dimensional models and we do not have statistical guarantees on their ability to capture the target  posterior distribution, see \cite{NEURIPS2020_b6dfd418}.
 
 %Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as its training mechanism.
 Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by leveraging Dropout during both training and evaluation tasks, producing variable predictions from a single trained recurrent model, see \cite{Gal2016NIPS}.
@@ -59,7 +59,7 @@ However, these frequentist approaches fail to guarantee proper calibration of th
 In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains a deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
 
 
-Inspired by \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning, in the context of dependent data. This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, because the log likelihood of the observations is not available explicitly in such a setting, the second stage training requires using approximate sampling methods. In this letter, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{Ma2020}.
+Inspired by \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning, in the context of dependent data. This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, because the loglikelihood of the observations is not available explicitly in such a setting, the second stage training requires using approximate sampling methods. In this letter, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{naesseth2017variational,maddison2017filtering,Ma2020}.
 We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
 Particle filters have also proven reliable in other fields, such as presented in \cite{Liu2020LSTMPF} for object tracking.
 
@@ -70,30 +70,31 @@ Particle filters have also proven reliable in other fields, such as presented in
 
 \section{Last layer decoupling}
 Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
-We therefore propose to first train an input model following traditional deep learning approaches, then use Monte Carlo methods in a lower dimensional state space to account for uncertainty in the last layer.
+We therefore propose to first train an input model following traditional deep learning approaches, then use Monte Carlo methods in a lower dimensional state space to account for uncertainty, with tractable and computationally efficient simulation-based methods.
 
 In the following, for any sequence $(a_m,\ldots, a_n)$ with $n\geq m$, we use the short-hand notation $a_{m:n} = (a_m,\ldots, a_n)$.
 Let $T\ge 1$ be a given time horizon.
-We consider the regression task over observations $Y_{1:T}$ associated with the inputs $U_{1:T}$.
+We consider a regression task with observations $Y_{1:T}$ associated with inputs $U_{1:T}$.
 
 \subsection{Representation learning}%
-In this letter, we consider an arbitrary multi-layer neural network $h$ with unknown parameters $\varphi$, responsible for extracting high level features from the input time series:
+In this letter, we consider an arbitrary multi-layer neural network $h_\varphi$ with unknown parameters $\varphi$, responsible for extracting high level features from the input time series:
 \begin{align*}
-	\widetilde U_{1:T} & = h_\varphi(U_{1:T}) & \text{input model}
+	\widetilde U_{1:T} & = h_\varphi(U_{1:T})\,, & \text{input model.}
 \end{align*}
-In order to get an estimate $\hat \varphi$, we introduce an auxiliary function $k_\psi$ and generate predictions $\hat Y_t = k_\psi(Y_{t-1}, \widetilde U_t)\,, \forall 1 \leq t \leq T$.
-The input model can then be trained by performing gradient descent to minimize the prediction error, before discarding the auxiliary function.
+In order to get an estimate $\hat \varphi$, 
+We also introduce an auxiliary function $k_\psi$ to design a first recurrent architecture to model the observations: for all $1 \leq t \leq T$, $Y_t = k_\psi(Y_{t-1}, \widetilde U_t)$.
+The input model can then be trained by performing gradient descent to minimize the prediction error using a standard loss function. The estimated input model is then stored while the auxiliary function $\kappa_\psi$ to model the observations is discarded.
 
 \subsection{State space model}
 \label{sub:proposed_architecture}
-We define a state space model taking as input the previously extracted features $\widetilde U_{1:T}$.
+The next step is to define  a state space model taking as input the previously extracted features $\widetilde U_{1:T}$.
 Let $X_{1:T}$ a sequence of stochastic hidden states computed recursively and $Y_t$ their associated predictions.
 For all $t \geq 1$, the model is defined as:
 \begin{align*}
-	X_t & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t & \text{state model, }       \\
-	Y_t & = f_\theta(X_t) + \epsilon_t                 & \text{observation model. }
+	X_t & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t\,, & \text{state model, }       \\
+	Y_t & = f_\theta(X_t) + \epsilon_t\,,                 & \text{observation model. }
 \end{align*}
-where $\theta$ is a set of real-valued parameters of the network (weights and biases) and $f_\theta$ and $g_\theta$ are non linear parametric functions.
+where $\theta$ are the unknown real-valued parameters of the network (weights and biases) and $f_\theta$ and $g_\theta$ are nonlinear parametric functions.
 We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
 
 This decoupled approach aims at reducing the number of parameters in $\theta$, compared to $\varphi$, in order to estimate them using Sequential Monte Carlo methods.
@@ -103,7 +104,7 @@ All implementation and training details are postponed to Section~\ref{sec:exp}.
 \section{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 In this section, we detail how to estimate the parameters $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture}, from a record of observations $Y_{1:T}$.
-This is challenging because the log likelihood of the observations is not available explicitly, as it would require integrating over the distribution of the hidden states $X_{1:T}$.
+This is challenging because the loglikelihood of the observations is not available explicitly, as it would require integrating over the distribution of the hidden states $X_{1:T}$.
 Consequently, the score function is intractable.
 We propose to optimize a Monte Carlo estimator of this score function, using Fisher's identity:
 \begin{equation}
@@ -118,24 +119,24 @@ The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available expli
 % We first produce a set of histories  associated with importance weights  using the Path-space smoother.
 At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight:
 \[
-	\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)\,,
+	\omega_0^{\ell} \propto \ell_0 \left(\xi^{\ell}_0\right)\,,
 \]
 where $\ell_0(\cdot) = \Psi_{Y_0, \Sigma_y}(f_\theta(\cdot))$.
 Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
 \[
-	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},x)\,.
+	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},\widetilde U_k,x)\,.
 \]
-In this application we use for $p_k(\xi^{\ell}_{k-1},\cdot)$ the prior kernel $\Psi_{g_\theta(\xi^\ell_{k-1}, \tilde U_k), \Sigma_x}$.
+In this application we use for $p_k(\xi^{\ell}_{k-1},\widetilde U_k,\cdot)$ the prior kernel $\Psi_{g_\theta(\xi^\ell_{k-1}, \tilde U_k), \Sigma_x}$.
 For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot) = \Psi_{Y_k, \Sigma_y}(f_\theta(\cdot))$.
 The full particle filter algorithm is presented in Algorithm~\ref{alg:particle_filter}.
 
 \subsection{Particle smoother}
 Any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
 Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
-For the sake of simplicity, we opt for the Path-space smoother.
-With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the following loss function is an estimator of the score, and can be optimized by deep learning frameworks through automated differentiation:
+For the sake of simplicity and to illustrate our approach with the simplest (and computationally cheapest) SMC smoother, we opt for the Path-space smoother.
+With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows to optimize the deep learning architecture using automated differentiation:
 $$
-	\widehat {\nabla_\theta \log p_\theta(Y_{1:T})_k^N} = \sum_{l=1}^N \omega_T^l\nabla_\theta\log p_\theta(\xi^l_{1:T}, Y^{k}_{1:T})\,,
+	\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})\,.
 $$
 
 \subsection{Stochastic Gradient Descent for online estimation}
@@ -150,36 +151,40 @@ where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observ
 Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
 
 \begin{algorithm}
-	\caption{Particle filter}
+	\caption{Two-stage learning}
 	\label{alg:particle_filter}
 	\KwIn{$\theta, Y_{1:T}, \widetilde U_{1:T}$}
-	\KwOut{$(\xi_{1:T}^l, \omega_T^l)_{l=1}^N$}
-	$\xi_0^l \sim \rho_0$\;
-	$\omega_0^{\ell} \propto \chi\left(\xi^{\ell}_0\right)\ell_0 \left(\xi^{\ell}_0\right)/ \rho_0 \left(\xi^{\ell}_0\right)$\;
+	\KwOut{$(\xi_{1:T}^\ell, \omega_T^\ell)_{\ell=1}^N$}
+Train $\varphi$ to learn the input model $\widetilde U_{1:T} = h_{\hat\varphi}(U_{1:T})$.
+	$\xi_0^\ell \sim \rho_0$ and $\omega_0^{\ell} \propto \ell_0 \left(\xi^{\ell}_0\right)$.
 	\For{$k \gets 1$ \KwTo $T$}{
-		$I_k^l \sim \mathbb{P}(I_k^l=j) = \omega_{k-1}^j$\;
-		$\xi_k^l \sim p_k(\xi_{k-1}^{I_k^l}, \widetilde U_k)$\;
-		$\omega_k^l \gets \ell_k (\xi_k^l) / \sum_{j=1}^N \ell_k (\xi_k^j)$\;
+           \For{$j \gets 1$ \KwTo $N$}{
+		$I_k^j \sim \mathbb{P}(I_k^j=m) = \omega_{k-1}^m$\;
+		$\xi_k^j \sim p_k(\xi_{k-1}^{I_k^j},  \widetilde U_k,\cdot)$\;
+                     $\omega_k^j \propto\ell_k (\xi_k^j)$\;
+Set $\xi_{0:k}^j = (\xi_{0:k-1}^{I_k^j},\xi_k^j)$.
+}		
 	}
+Compute $\widehat {S}^N_\theta(Y_{1:T}) $.
 \end{algorithm}
 
 \section{Experiments}
 \label{sec:exp}
 \subsection{Data}
 \label{sub:data}
-We benchmarked our approach on the public Electricity Transformer Temperature (ETT) Dataset, designed in \cite{Zhou2021Informer} around the forecasting of Oil temperature based on hourly power load records (ETTh1 subset).
+We benchmarked our approach on the public Electricity Transformer Temperature (ETT) Dataset, designed in \cite{Zhou2021Informer} to forecast Oil temperature based on hourly power load records (ETTh1 subset).
 
 \subsection{Model}%
 \label{sub:models}
 
 \textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}: for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
 \begin{align*}
-	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr})                 \\
-	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz})                 \\
-	n^\ell_t        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn})) \\
-	\tilde U^\ell_t & = (1-z^\ell_t) n^\ell_t+z^\ell_t U^\ell_{t-1}
+	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr}) \,,                \\
+	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz}) \,,                \\
+	n^\ell_t        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn}))\,, \\
+	\tilde U^\ell_t & = (1-z^\ell_t) n^\ell_t+z^\ell_t U^\ell_{t-1}\,,
 \end{align*}
-where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters, and $\sigma: x \mapsto \frac {1}{1+e^{-x}}$ is the sigmoid function.
+where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters, and $\sigma: x \mapsto 1/(1+\mathrm{e}^{-x})$ is the sigmoid function.
 The first layer of the network is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$ and $\widetilde U^\ell_0 \equiv 0$.
 % where $\varphi = \{W_{ir}, b_{ir}, W_{hr}, b_{hr}, W_{iz}, b_{iz}, W_{hz}, b_{hz}, W_{in}, b_{in}, W_{hn}, b_{hn}\}$ are unknown parameters
 The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6 as well.
@@ -187,18 +192,17 @@ In order to estimate the parameters $\varphi$, we introduce an auxiliary GRU lay
 During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_\varphi(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
 \textbf{The State Space model} is implemented using PyTorch's RNN and Linear layers, in order to use auto differentiation.
-We chose the following form for $f$ and $g$:
+We chose the following form for $f_\theta$ and $g_\theta$:
 \begin{align*}
-	g_\theta & : X_{t-1}, \widetilde U_t \mapsto \tanh(W_{gx} X_{t-1} + b_{gx} + W_{gu} \widetilde U_t + b_{gu}) \\
-	f_\theta & : X_t \mapsto  \sigma(W_f X_t + b_f)
+	g_\theta & : X_{t-1}, \widetilde U_t \mapsto \tanh(W_{gx} X_{t-1} + b_{gx} + W_{gu} \widetilde U_t + b_{gu})\,, \\
+	f_\theta & : X_t \mapsto  \sigma(W_f X_t + b_f)\,,
 \end{align*}
 where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f\}$ are unknown parameters.
 In this form, since the update rule for both $\Sigma_x$ and $\Sigma_y$ are available explicitly, we compute the following at each training step instead of using gradient descent:
 \begin{align*}
-	\Sigma_x & = N^{-1} \sum_{l=1}^N \sum_{k=1}^T (\tanh^{-1}(\xi_t^l) - g_{\hat \theta}(\xi^l_{t-1}, \widetilde U_t))^2 \omega_T^l \\
-	\Sigma_y & = N^{-1} \sum_{l=1}^N \sum_{k=1}^T (Y_t - f_{\hat \theta}(\xi^l_t))^2 \omega_T^l
+	\Sigma_x & = T^{-1} \sum_{\ell=1}^N \sum_{t=1}^T \omega_T^\ell (\tanh^{-1}(\xi_t^\ell) - g_{\hat \theta}(\xi^\ell_{t-1}, \widetilde U_t))^2\,, \\
+	\Sigma_y & = T^{-1} \sum_{\ell=1}^N \sum_{t=1}^T \omega_T^\ell (Y_t - f_{\hat \theta}(\xi^\ell_t))^2 \,.
 \end{align*}
-For the initial weights computation, we use $\chi = \rho_0$.
 All following experiments were computed with $N=100$ particles.
 
 \subsection{Trainings}
@@ -210,23 +214,21 @@ We train models for a maximum of 50 epochs, and employ early stopping to prevent
 \subsection{Evaluations}%
 \label{sub:evaluations}
 
-In this section, we illustrate the ability of our model to capture the distribution of future observations, by evaluating the benchmarked models on the following protocol:
-we draw 48 hours long samples $(u_{1:48}, y_{1:48})$ from the validation dataset, composed of a 24 hour long lookback window $(u_{1:24}, y_{1:24})$, containing historic commands and observations, and a predictions window where only future commands are available $(u_{25:48})$.
-Each model produces a 24 hour long forecast, which is compared to the ground truth to compute the Mean Squared Error (MSE) and Mean Absolute Error (MAE) criteria $\mathcal{L}(y_{25:48}, \texttt{model}(u_{1:48}, y_{1:24}))$, reported in Table~\ref{tab:ci_comparison}.
+In this section, we illustrate the ability of our model to capture the distribution of future observations, by evaluating the benchmarked models using the following protocol. We draw 48 hours long samples $(u_{1:48}, y_{1:48})$ from the validation dataset, composed of a 24 hour long lookback window $(u_{1:24}, y_{1:24})$, containing historic commands and observations, and a predictions window where only future commands are available $(u_{25:48})$.
+Each model produces a 24 hour long forecast, which is compared to the ground truth to compute the Mean Squared Error (MSE) and Mean Absolute Error (MAE) criteria reported in Table~\ref{tab:ci_comparison}. % $\mathcal{L}(y_{25:48}, \texttt{model}(u_{1:48}, y_{1:24}))$,
 
-For our proposed model, one step predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
+For our proposed model, predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
 $$
 	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})\,,
 $$
 where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$ is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}.
 Although predictions given the previous time step provide good performances, it is limited as many applications require multi-steps forecasts.
-In order to explore longer ranges, we can draw $N$ independent samples from $\sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+p}|\xi_t^i,U_{t+1:t+p})$, for $p>1$.
-As $p$ increases, the accuracy of our predictions decreases, as our model no longer has access to the observations.
+In order to explore longer ranges, we can simply run our model to get $N$ samples forany time horizon $p$.
 We report MSE and MAE criteria by averaging the forecasts of these $N$ draws.
-The associated confidence intervals are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 24$.
+The associated intervals \textcolor{red}{containing XXX\% of the samples} are displayed in Figure~\ref{fig:filter_k+24} for $1\leq p \leq 24$.
 
 We compared our model with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}, with dropout values of $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
-The training procedure is similar to traditional recurrent models ; during inference, we draw $N=100$ samples from the dropout layers, and compute the same average forecasts and confidence intervals as our model.
+The training procedure is similar to traditional recurrent models ; during inference, we draw $100$ samples from the dropout layers, and compute the same average forecasts and  intervals as for our model.
 Despite being based on the same deep learning architecture, the MC dropout model is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
 We also experimented with a linear Hidden Markov Model (HMM), without reaching performances on par with the other approaches.
 
