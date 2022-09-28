@@ -106,7 +106,7 @@ All implementation and training details are postponed to Section~\ref{sec:exp}.
 In this section, we detail how to estimate the parameters $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture}, from a record of observations $Y_{1:T}$.
 This is challenging because the loglikelihood of the observations is not available explicitly, as it would require integrating over the distribution of the hidden states $X_{1:T}$.
 Consequently, the score function is intractable.
-We propose to optimize a Monte Carlo estimator of this score function, using Fisher's identity:
+We propose to optimize a Monte Carlo estimator of this score function, using Fisher's identity \cite{monographie-randal}:
 \begin{equation}
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
