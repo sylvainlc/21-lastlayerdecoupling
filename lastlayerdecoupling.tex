@@ -5,7 +5,6 @@
 \usepackage{amsfonts, dsfont} % Math fonts
 \usepackage{hyperref} % Links
 \usepackage{graphicx} % Include graphics
-\usepackage[ruled,vlined]{algorithm2e}
 \usepackage{booktabs,xcolor}
 \usepackage[ruled,vlined]{algorithm2e}
 \graphicspath{ {./images/} }
@@ -153,9 +152,10 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 \begin{algorithm}
 	\caption{Two-stage learning}
 	\label{alg:particle_filter}
-	\KwIn{$\theta, Y_{1:T}, \widetilde U_{1:T}$}
-	\KwOut{$(\xi_{1:T}^\ell, \omega_T^\ell)_{\ell=1}^N$}
-	Train $\varphi$ to learn the input model $\widetilde U_{1:T} = h_{\hat\varphi}(U_{1:T})$\;
+	\KwIn{$Y_{1:T}, U_{1:T}$}
+	\KwOut{$(\hat \varphi, \hat \theta)$}
+	$\hat \varphi \gets$ Train the input model $h_\varphi$\;
+	$\widetilde U_{1:T} \gets h_{\hat \varphi}(U_{1:T})$\;
 	$\xi_0^\ell \sim \rho_0$ and $\omega_0^{\ell} \propto \ell_0 \left(\xi^{\ell}_0\right)$\;
 	\For{$k \gets 1$ \KwTo $T$}{
 		\For{$j \gets 1$ \KwTo $N$}{
@@ -165,7 +165,7 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 			Set $\xi_{0:k}^j = (\xi_{0:k-1}^{I_k^j},\xi_k^j)$.
 		}
 	}
-	Compute $\widehat {S}^N_\theta(Y_{1:T}) $.
+	$\hat \theta \gets$ Gradient descent on $\widehat {S}^N_\theta(Y_{1:T})$.
 \end{algorithm}
 
 \section{Experiments}
