@@ -230,7 +230,8 @@ The associated intervals containing 95\% of the samples are displayed in Figure~
 We compared our model with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}, with dropout values of $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 The training procedure is similar to traditional recurrent models ; during inference, we draw $100$ samples from the dropout layers, and compute the same average forecasts and  intervals as for our model.
 Despite being based on the same deep learning architecture, the MC dropout model is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
-We also experimented with a linear Hidden Markov Model (HMM), without reaching performances on par with the other approaches.
+We also experimented with a linear Hidden Markov Model (HMM), with a latent dimension of $4$, whose parameters are estimated with the Kalman filter.
+We could not reach performances on par with the other approaches.
 
 \begin{figure}[htpb]
 	\centering
@@ -263,7 +264,7 @@ We also experimented with a linear Hidden Markov Model (HMM), without reaching p
 		SMCL (ours)        & $7.74 \pm 9.84$ & $21.2 \pm 12.1$ & $210 ms \pm 75.7$ \\
 		MCD $p=0.01$       & $8.20 \pm 14.0$ & $20.9 \pm 14.0$ & $193 ms \pm 60.4$ \\
 		MCD $p=0.05$       & $9.76 \pm 10.5$ & $23.4 \pm 13.4$ & $193 ms \pm 60.4$ \\
-		HMM                & $76.2 \pm 28.1$ & $65.6 \pm 26.3$ & $994 ms \pm 21.4$ \\
+		HMM                & $46.4 \pm 18.5$ & $39.5 \pm 17.1$ & $994 ms \pm 21.4$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
