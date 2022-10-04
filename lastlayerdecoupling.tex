@@ -92,7 +92,7 @@ Let $X_{1:T}$ a sequence of stochastic hidden states computed recursively and $Y
 For all $t \geq 1$, the model is defined as:
 \begin{align*}
 	X_t & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t\,, & \text{state model, }       \\
-	Y_t & = f_\theta(X_t) + \epsilon_t\,,                 & \text{observation model. }
+	Y_t & = f_\theta(X_t) + \epsilon_t\,,                 & \text{observation model, }
 \end{align*}
 where $\theta$ are the unknown real-valued parameters of the network (weights and biases) and $f_\theta$ and $g_\theta$ are nonlinear parametric functions.
 We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
@@ -126,15 +126,15 @@ The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available expli
 % We first produce a set of histories  associated with importance weights  using the Path-space smoother.
 At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight:
 \[
-	\omega_0^{\ell} \propto \ell_0 \left(\xi^{\ell}_0\right)\,,
+	\omega_0^{\ell} \propto  \Psi_{Y_0, \Sigma_y}(f_\theta(\xi^{\ell}_0)) \,.
 \]
-where $\ell_0(\cdot) = \Psi_{Y_0, \Sigma_y}(f_\theta(\cdot))$.
+%where $\ell_0(\cdot) = \Psi_{Y_0, \Sigma_y}(f_\theta(\cdot))$.
 Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
 \[
 	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},\widetilde U_k,x)\,.
 \]
 In this application we use for $p_k(\xi^{\ell}_{k-1},\widetilde U_k,\cdot)$ the prior kernel $\Psi_{g_\theta(\xi^\ell_{k-1}, \tilde U_k), \Sigma_x}$.
-For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \ell_k(\xi^{\ell}_k)$, where $\ell_k(\cdot) = \Psi_{Y_k, \Sigma_y}(f_\theta(\cdot))$.
+For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \Psi_{Y_k, \Sigma_y}(f_\theta(\xi^{\ell}_k))$.%, where $\ell_k(\cdot) = \Psi_{Y_k, \Sigma_y}(f_\theta(\cdot))$.
 
 \subsection{Particle smoother}
 Any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
@@ -142,8 +142,10 @@ Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoot
 In order to illustrate our approach with the simplest (and computationally cheapest) SMC smoother, we opt for the Path-space smoother.
 With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation:
 $$
-	\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})\,.
+	\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})\,,
 $$
+where $p_\theta$ is the joint probability density function of $(X_{1:T}, Y_{1:T})$ for the model described in Section~\ref{sub:proposed_architecture}.
+
 
 \subsection{Stochastic Gradient Descent for online estimation}
 An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
@@ -163,16 +165,20 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 	\KwOut{$(\hat \varphi, \hat \theta)$}
 	$\hat \varphi \gets$ Train the input model $h_\varphi$\;
 	$\widetilde U_{1:T} \gets h_{\hat \varphi}(U_{1:T})$\;
-	$\xi_0^\ell \sim \rho_0$ and $\omega_0^{\ell} \propto \ell_0 \left(\xi^{\ell}_0\right)$\;
+	Initialize parameter estimate $\widehat \theta_0$\;
+          \For{$p \gets 1$ \KwTo $\mathrm{MaxIt}$}{
+	$\xi_0^\ell \sim \rho_0$ and $\omega_0^{\ell} \propto  \Psi_{Y_0, \Sigma_y}(f_{\widehat \theta_{p-1}}(\xi^{\ell}_0))$\;
 	\For{$k \gets 1$ \KwTo $T$}{
 		\For{$j \gets 1$ \KwTo $N$}{
 			$I_k^j \sim \mathbb{P}(I_k^j=m) = \omega_{k-1}^m$\;
 			$\xi_k^j \sim p_k(\xi_{k-1}^{I_k^j},  \widetilde U_k,\cdot)$\;
-			$\omega_k^j \propto\ell_k (\xi_k^j)$\;
+			$\omega_k^j \propto  \Psi_{Y_k, \Sigma_y}(f_{\widehat \theta_{p-1}}(\xi^{j}_k))$\;
 			Set $\xi_{0:k}^j = (\xi_{0:k-1}^{I_k^j},\xi_k^j)$.
 		}
 	}
-	$\hat \theta \gets$ Gradient descent on $\widehat {S}^N_\theta(Y_{1:T})$.
+Update the parameter estimate using gradient descent with estimated gradient $\widehat {S}^N_{\widehat \theta_{p-1}}(Y_{1:T})$.
+}
+	
 \end{algorithm}
 
 \section{Experiments}
@@ -198,7 +204,7 @@ The input dimension $d_\textnormal{in}=6$ corresponds to the number of power loa
 In order to estimate the parameters $\varphi$, we introduce an auxiliary GRU layer responsible for computing oil temperature predictions.
 During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_\varphi(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
-\textbf{The State Space model} is implemented using PyTorch's RNN and Linear layers, in order to use auto differentiation.
+\textbf{The State Space model} is implemented using PyTorch implementations of  RNN and Linear layers, in order to use auto differentiation.
 We chose the following form for $f_\theta$ and $g_\theta$:
 \begin{align*}
 	g_\theta & : X_{t-1}, \widetilde U_t \mapsto \tanh(W_{gx} X_{t-1} + b_{gx} + W_{gu} \widetilde U_t + b_{gu})\,, \\
@@ -212,8 +218,8 @@ In this form, since the update rule for both $\Sigma_x$ and $\Sigma_y$ are avail
 \end{align*}
 All following experiments were computed with $N=100$ particles.
 
-\subsection{Trainings}
-\label{sub:trainings}
+%\subsection{Trainings}
+%\label{sub:trainings}
 All training experiments are conducted with a batch size of 32, using the Adam optimizer introduced in \cite{Kingma2015AdamAM}.
 The learning rate was chosen using a simple grid search.
 We train models for a maximum of 50 epochs, and employ early stopping to prevent overfit.
