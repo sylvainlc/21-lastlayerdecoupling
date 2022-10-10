@@ -47,11 +47,11 @@ Several architectures inspired by Variational Inference (VI, see \cite{Jordan200
 The authors of \cite{Chung2015NIPS,10.5555/3157096.3157343} built on a traditional recurrent architecture by modelling temporal dependencies between these latent random states. Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
 
 
-In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions on unseen data. Such Bayesian neural networks have been proposed and studied in a variety of works, see for instance \cite{hernandez2015probabilistic,khan2018fast,teye2018bayesian}. However, these methods are computationally intensive for high dimensional models and we do not have statistical guarantees on their ability to capture the target  posterior distribution, see \cite{NEURIPS2020_b6dfd418}.
+In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions. Such Bayesian neural networks have been proposed and studied in a variety of works, see for instance \cite{hernandez2015probabilistic,khan2018fast,teye2018bayesian}. However, these methods are computationally intensive for high dimensional models and we do not have statistical guarantees on their ability to capture the target  posterior distribution, see \cite{NEURIPS2020_b6dfd418}.
 
 %Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as its training mechanism.
 Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by leveraging Dropout during both training and evaluation tasks, producing variable predictions from a single trained recurrent model, see \cite{Gal2016NIPS}.
-In the following years, MC Dropout methods have been applied in many industrial fields, such as flight delay prediction \cite{Vandal2018} or molecular simulations \cite{Wen2020UncertaintyQI}.
+In the recent years, MC Dropout methods have been applied in many industrial fields, such as flight delay prediction \cite{Vandal2018} or molecular simulations \cite{Wen2020UncertaintyQI}.
 Alternatively, ensemble methods consist in training distinct networks to obtain a combined prediction, as shown in \cite{Pearce2018}.
 However, these frequentist approaches fail to guarantee proper calibration of the model, as highlighted by \cite{ashukha2020pitfalls}, and suffer various limitations, see \cite{Fong2020}.
 
@@ -81,7 +81,7 @@ In this letter, we consider an arbitrary multi-layer neural network $h_\varphi$ 
 \begin{align*}
 	\widetilde U_{1:T} & = h_\varphi(U_{1:T})\,, & \text{input model.}
 \end{align*}
-In order to get an estimate $\hat \varphi$, we also introduce an auxiliary function $\kappa_\psi$ to design a first recurrent architecture to model the observations: for all $1 \leq t \leq T$, $Y_t = \kappa_\psi(Y_{t-1}, \widetilde U_t)$.
+In order to get an estimate $\hat \varphi$, we also introduce an auxiliary function $\kappa_\psi$ to design a first recurrent architecture to model the observations: for all $1 \leq t \leq T$, $Y_t = \kappa_\psi(Y_{t-1}, \widetilde U_t)$ and $Y_0 = \kappa_\psi(\widetilde U_0)$.
 The input model can then be trained by performing gradient descent to minimize the prediction error using a standard loss function.
 We keep the estimated parameters $\hat \varphi$ while the auxiliary function $\kappa_\psi$, only designed to model the observations, is discarded.
 
@@ -95,7 +95,7 @@ For all $t \geq 1$, the model is defined as:
 	Y_t & = f_\theta(X_t) + \epsilon_t\,,                 & \text{observation model, }
 \end{align*}
 where $\theta$ are the unknown real-valued parameters of the network (weights and biases) and $f_\theta$ and $g_\theta$ are nonlinear parametric functions.
-We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
+We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two independent sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
 
 This decoupled approach aims at reducing the number of parameters in $\theta$, compared to $\varphi$, in order to estimate them using Sequential Monte Carlo methods.
 In the next section, we describe this second training procedure for the last layer only, by keeping $\hat \varphi$ fixed.
@@ -118,7 +118,7 @@ We propose to optimize a Monte Carlo estimator of this score function, using Fis
 	\nabla_\theta \log p_\theta(Y_{1:T}) = \mathbb{E}_\theta \left[ \nabla_\theta\log p_\theta(X_{1:T}, Y_{1:T}) | Y_{1:T} \right]\,,
 	\label{eq:grad_ll}
 \end{equation}
-where $\mathbb{E}_\theta$ design the expectation under the model parameterized by $\widehat \varphi$ and $\theta$ (the dependency on the input $U_{1:T}$ is kept implicit here for better clarity).
+where $\mathbb{E}_\theta$ designs the expectation under the model parameterized by $\theta$ (the dependency on the input $U_{1:T}$ is kept implicit here for better clarity).
 In the following paragraphs, we denote by $\Psi_{\mu, \Sigma}$ the Gaussian probability density function with mean vector $\mu$ and covariance matrix $\Sigma$.
 
 \subsection{Particle filter}
@@ -166,19 +166,19 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 	$\hat \varphi \gets$ Train the input model $h_\varphi$\;
 	$\widetilde U_{1:T} \gets h_{\hat \varphi}(U_{1:T})$\;
 	Initialize parameter estimate $\widehat \theta_0$\;
-          \For{$p \gets 1$ \KwTo $\mathrm{MaxIt}$}{
+	\For{$p \gets 1$ \KwTo $\mathrm{MaxIt}$}{
 	$\xi_0^\ell \sim \rho_0$ and $\omega_0^{\ell} \propto  \Psi_{Y_0, \Sigma_y}(f_{\widehat \theta_{p-1}}(\xi^{\ell}_0))$\;
 	\For{$k \gets 1$ \KwTo $T$}{
-		\For{$j \gets 1$ \KwTo $N$}{
-			$I_k^j \sim \mathbb{P}(I_k^j=m) = \omega_{k-1}^m$\;
-			$\xi_k^j \sim p_k(\xi_{k-1}^{I_k^j},  \widetilde U_k,\cdot)$\;
-			$\omega_k^j \propto  \Psi_{Y_k, \Sigma_y}(f_{\widehat \theta_{p-1}}(\xi^{j}_k))$\;
-			Set $\xi_{0:k}^j = (\xi_{0:k-1}^{I_k^j},\xi_k^j)$.
+	\For{$j \gets 1$ \KwTo $N$}{
+		$I_k^j \sim \mathbb{P}(I_k^j=m) = \omega_{k-1}^m$\;
+		$\xi_k^j \sim p_k(\xi_{k-1}^{I_k^j},  \widetilde U_k,\cdot)$\;
+		$\omega_k^j \propto  \Psi_{Y_k, \Sigma_y}(f_{\widehat \theta_{p-1}}(\xi^{j}_k))$\;
+		Set $\xi_{0:k}^j = (\xi_{0:k-1}^{I_k^j},\xi_k^j)$.
 		}
 	}
-Update the parameter estimate using gradient descent with estimated gradient $\widehat {S}^N_{\widehat \theta_{p-1}}(Y_{1:T})$.
-}
-	
+	Update the parameter estimate using gradient descent with estimated gradient $\widehat {S}^N_{\widehat \theta_{p-1}}(Y_{1:T})$.
+	}
+
 \end{algorithm}
 
 \section{Experiments}
@@ -266,7 +266,7 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 	\label{tab:ci_comparison}
 	\begin{tabular}{llll}
 		\toprule
-		             & RMSE             & MAE             & Computation time  \\
+		             & RMSE            & MAE             & Computation time  \\
 		\toprule
 		SMCL (ours)  & $0.24 \pm 0.13$ & $0.21 \pm 0.12$ & $210 ms \pm 75.7$ \\
 		MCD $p=0.01$ & $0.25 \pm 0.15$ & $0.21 \pm 0.14$ & $193 ms \pm 60.4$ \\
