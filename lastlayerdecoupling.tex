@@ -81,7 +81,7 @@ In this letter, we consider an arbitrary multi-layer neural network $h_\varphi$ 
 \begin{align*}
 	\widetilde U_{1:T} & = h_\varphi(U_{1:T})\,, & \text{input model.}
 \end{align*}
-In order to get an estimate $\hat \varphi$, we also introduce an auxiliary function $\kappa_\psi$ to design a first recurrent architecture to model the observations: for all $1 \leq t \leq T$, $Y_t = \kappa_\psi(Y_{t-1}, \widetilde U_t)$ and $Y_0 = \kappa_\psi(\widetilde U_0)$.
+In order to get an estimate $\hat \varphi$, we also introduce an auxiliary function $\kappa_\psi$ to design a first recurrent architecture to model the observations: for all $1 \leq k \leq T$, $Y_k = \kappa_\psi(Y_{k-1}, \widetilde U_k)$ and $Y_0 = \kappa_\psi(\widetilde U_0)$.
 The input model can then be trained by performing gradient descent to minimize the prediction error using a standard loss function.
 We keep the estimated parameters $\hat \varphi$ while the auxiliary function $\kappa_\psi$, only designed to model the observations, is discarded.
 
@@ -89,13 +89,13 @@ We keep the estimated parameters $\hat \varphi$ while the auxiliary function $\k
 \label{sub:proposed_architecture}
 The next step is to define  a state space model taking as input the previously extracted features $\widetilde U_{1:T}$.
 Let $X_{1:T}$ a sequence of stochastic hidden states computed recursively and $Y_t$ their associated predictions.
-For all $t \geq 1$, the model is defined as:
+For all $k \geq 1$, the model is defined as:
 \begin{align*}
-	X_t & = g_\theta(X_{t-1}, \widetilde U_t) + \eta_t\,, & \text{state model, }       \\
-	Y_t & = f_\theta(X_t) + \epsilon_t\,,                 & \text{observation model, }
+	X_k & = g_\theta(X_{k-1}, \widetilde U_k) + \eta_k\,, & \text{state model, }       \\
+	Y_k & = f_\theta(X_k) + \epsilon_k\,,                 & \text{observation model, }
 \end{align*}
 where $\theta$ are the unknown real-valued parameters of the network (weights and biases) and $f_\theta$ and $g_\theta$ are nonlinear parametric functions.
-We chose $(\eta_t)_{t\geq 1}$ and $(\epsilon_t)_{t\geq 1}$ as two independent sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
+We chose $(\eta_k)_{k\geq 1}$ and $(\epsilon_k)_{k\geq 1}$ as two independent sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
 
 This decoupled approach aims at reducing the number of parameters in $\theta$, compared to $\varphi$, in order to estimate them using Sequential Monte Carlo methods.
 In the next section, we describe this second training procedure for the last layer only, by keeping $\hat \varphi$ fixed.
@@ -190,15 +190,15 @@ We benchmarked our approach on the public Electricity Transformer Temperature (E
 \subsection{Model}%
 \label{sub:models}
 
-\textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}: for all $1 \leq \ell \leq L$ and all $1 \leq t \leq T$,
+\textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}: for all $1 \leq \ell \leq L$ and all $1 \leq k \leq T$,
 \begin{align*}
-	r^\ell_t        & = \sigma(W_{ir} U^{\ell - 1}_t + b_{ir} + W_{hr} U^{\ell}_{t-1} + b_{hr}) \,,                \\
-	z^\ell_t        & = \sigma(W_{iz} U^{\ell - 1}_t + b_{iz} + W_{hz} U^{\ell}_{t-1} + b_{hz}) \,,                \\
-	n^\ell_t        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_t + b_{in} + r^\ell_t (W_{hn} U^\ell_{t-1} + b_{hn}))\,, \\
-	\tilde U^\ell_t & = (1-z^\ell_t) n^\ell_t+z^\ell_t U^\ell_{t-1}\,,
+	r^\ell_k        & = \sigma(W_{ir} U^{\ell - 1}_k + b_{ir} + W_{hr} U^{\ell}_{k-1} + b_{hr}) \,,                \\
+	z^\ell_k        & = \sigma(W_{iz} U^{\ell - 1}_k + b_{iz} + W_{hz} U^{\ell}_{k-1} + b_{hz}) \,,                \\
+	n^\ell_k        & = \mathrm{tanh}(W_{in} U^{\ell - 1}_k + b_{in} + r^\ell_k (W_{hn} U^\ell_{k-1} + b_{hn}))\,, \\
+	\tilde U^\ell_k & = (1-z^\ell_k) n^\ell_k+z^\ell_k U^\ell_{k-1}\,,
 \end{align*}
 where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters, and $\sigma: x \mapsto 1/(1+\mathrm{e}^{-x})$ is the sigmoid function.
-The first layer of the network is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_t$ and $\widetilde U^\ell_0 \equiv 0$.
+The first layer of the network is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_k$ and $\widetilde U^\ell_0 \equiv 0$.
 % where $\varphi = \{W_{ir}, b_{ir}, W_{hr}, b_{hr}, W_{iz}, b_{iz}, W_{hz}, b_{hz}, W_{in}, b_{in}, W_{hn}, b_{hn}\}$ are unknown parameters
 The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6 as well.
 In order to estimate the parameters $\varphi$, we introduce an auxiliary GRU layer responsible for computing oil temperature predictions.
@@ -207,14 +207,14 @@ During the training, me minimize the cost function $\mathcal{L}_{\mathrm{input}}
 \textbf{The State Space model} is implemented using PyTorch implementations of  RNN and Linear layers, in order to use auto differentiation.
 We chose the following form for $f_\theta$ and $g_\theta$:
 \begin{align*}
-	g_\theta & : X_{t-1}, \widetilde U_t \mapsto \tanh(W_{gx} X_{t-1} + b_{gx} + W_{gu} \widetilde U_t + b_{gu})\,, \\
-	f_\theta & : X_t \mapsto  \sigma(W_f X_t + b_f)\,,
+	g_\theta & : X_{k-1}, \widetilde U_k \mapsto \tanh(W_{gx} X_{k-1} + b_{gx} + W_{gu} \widetilde U_k + b_{gu})\,, \\
+	f_\theta & : X_k \mapsto  \sigma(W_f X_k + b_f)\,,
 \end{align*}
 where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f\}$ are unknown parameters.
 In this form, since the update rule for both $\Sigma_x$ and $\Sigma_y$ are available explicitly, we compute the following at each training step instead of using gradient descent:
 \begin{align*}
-	\Sigma_x & = T^{-1} \sum_{\ell=1}^N \sum_{t=1}^T \omega_T^\ell (\tanh^{-1}(\xi_t^\ell) - g_{\hat \theta}(\xi^\ell_{t-1}, \widetilde U_t))^2\,, \\
-	\Sigma_y & = T^{-1} \sum_{\ell=1}^N \sum_{t=1}^T \omega_T^\ell (Y_t - f_{\hat \theta}(\xi^\ell_t))^2 \,.
+	\Sigma_x & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (\tanh^{-1}(\xi_k^\ell) - g_{\hat \theta}(\xi^\ell_{k-1}, \widetilde U_k))^2\,, \\
+	\Sigma_y & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (Y_k - f_{\hat \theta}(\xi^\ell_k))^2 \,.
 \end{align*}
 All following experiments were computed with $N=100$ particles.
 
@@ -230,11 +230,11 @@ We train models for a maximum of 50 epochs, and employ early stopping to prevent
 In this section, we illustrate the ability of our model to capture the distribution of future observations, by evaluating the benchmarked models using the following protocol. We draw 48 hours long samples $(u_{1:48}, y_{1:48})$ from the validation dataset, composed of a 24 hour long lookback window $(u_{1:24}, y_{1:24})$, containing historic commands and observations, and a predictions window where only future commands are available $(u_{25:48})$.
 Each model produces a 24 hour long forecast, which is compared to the ground truth to compute the Root Mean Squared Error (RMSE) and Mean Absolute Error (MAE) criteria reported in Table~\ref{tab:ci_comparison}. % $\mathcal{L}(y_{25:48}, \texttt{model}(u_{1:48}, y_{1:24}))$,
 
-For our proposed model, predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{t+1}|U_{1:t+1},Y_{1:t})$ by
+For our proposed model, predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{k+1}|U_{1:k+1},Y_{1:k})$ by
 $$
-	p^N_{\widehat\theta,\widehat\varphi}(y_{t+1})= \sum_{i=1}^{N}\omega_t^i p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})\,,
+	p^N_{\widehat\theta,\widehat\varphi}(y_{k+1})= \sum_{i=1}^{N}\omega_k^i p_{\widehat\theta,\widehat\varphi}(y_{k+1}|\xi_k^i,U_{k+1})\,,
 $$
-where $ p_{\widehat\theta,\widehat\varphi}(y_{t+1}|\xi_t^i,U_{t+1})$ is the predictive distribution of $Y_{t+1}$ described in Section~\ref{sub:proposed_architecture}.
+where $ p_{\widehat\theta,\widehat\varphi}(y_{k+1}|\xi_k^i,U_{k+1})$ is the predictive distribution of $Y_{k+1}$ described in Section~\ref{sub:proposed_architecture}.
 Although predictions given the previous time step provide good performances, it is limited as many applications require multi-steps forecasts.
 In order to explore longer ranges, we can simply run our model to get $N$ samples for any time horizon $p$.
 We report RMSE and MAE criteria by averaging the forecasts of these $N$ draws.
@@ -248,7 +248,7 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 
 \begin{figure}[htpb]
 	\centering
-	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($t<24$) and without ($t>24$).
+	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($k<24$) and without ($k>24$).
 		Since re sampling of particles is no longer available at that point, the uncertainty grows for our model.
 		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).
 		Aggregated results on the entire validation set for the RMSE and MAE criteria can be found in Table~\ref{tab:ci_comparison}.}
