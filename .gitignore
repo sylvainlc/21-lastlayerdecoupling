@@ -5,6 +5,7 @@
 *.log
 *.out
 *.pdf
+*.synctex.gz
 
 # Latexmk env
 *.fdb_latexmk

@@ -137,9 +137,11 @@ In this application we use for $p_k(\xi^{\ell}_{k-1},\widetilde U_k,\cdot)$ the 
 For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \Psi_{Y_k, \Sigma_y}(f_\theta(\xi^{\ell}_k))$.%, where $\ell_k(\cdot) = \Psi_{Y_k, \Sigma_y}(f_\theta(\cdot))$.
 
 \subsection{Particle smoother}
-Any particle smoother can be used to estimate \eqref{eq:grad_ll} such as the Path-space smoother \cite{Kitagawa1996}, the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
+Our framework allows the use of any particle smoother to estimate \eqref{eq:grad_ll}.
+In this paper, we opt for the Path-space smoother \cite{Kitagawa1996} for its simplicity, in order to illustrate our approach.
+In practice, it often leads to particle path degeneracy \cite{Andrieu2005}, which can be mitigated by substituting a more complex smoother such as the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
 Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
-In order to illustrate our approach with the simplest (and computationally cheapest) SMC smoother, we opt for the Path-space smoother.
+
 With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation:
 $$
 	\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})\,,
