@@ -3,6 +3,7 @@
 % Packages
 \usepackage{amsmath} % Math environments
 \usepackage{amsfonts, dsfont} % Math fonts
+\usepackage{bbold}
 \usepackage{hyperref} % Links
 \usepackage{graphicx} % Include graphics
 \usepackage{booktabs,xcolor}
@@ -230,7 +231,10 @@ We train models for a maximum of 50 epochs, and employ early stopping to prevent
 \label{sub:evaluations}
 
 In this section, we illustrate the ability of our model to capture the distribution of future observations, by evaluating the benchmarked models using the following protocol. We draw 48 hours long samples $(u_{1:48}, y_{1:48})$ from the validation dataset, composed of a 24 hour long lookback window $(u_{1:24}, y_{1:24})$, containing historic commands and observations, and a predictions window where only future commands are available $(u_{25:48})$.
-Each model produces a 24 hour long forecast, which is compared to the ground truth to compute the Root Mean Squared Error (RMSE) and Mean Absolute Error (MAE) criteria reported in Table~\ref{tab:ci_comparison}. % $\mathcal{L}(y_{25:48}, \texttt{model}(u_{1:48}, y_{1:24}))$,
+Each model produces $N$ 24 hour long forecasts $(y_{25:48}^{(i)})_{i=1}^N$.
+We compute the Root Mean Squared Error (RMSE) between the observations and the average of the forecasts: $\mathrm{RMSE}^2 = T^{-1} \sum_{k=1}^T (Y_k - N^{-1} \sum_{i=1}^N y_k^{(i)})^2$.
+Additionally, we evaluate the Prediction Interval Coverage Probability (PICP, see \cite{Durga2006PICP}) which measures the ratio of observations falling between a 95\% confidence interval: $\mathrm{PICP} = T^{-1} \sum^{T}_{k=1} \mathbb{1}_{[y_L^k, y_U^k]}(Y_k)$, where $y_U^k$ (resp. $y_L^k$) is the upper (resp. lower) bound confidence intervals.
+Both criteria are reported in Table~\ref{tab:ci_comparison}.
 
 For our proposed model, predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{k+1}|U_{1:k+1},Y_{1:k})$ by
 $$
@@ -239,7 +243,7 @@ $$
 where $ p_{\widehat\theta,\widehat\varphi}(y_{k+1}|\xi_k^i,U_{k+1})$ is the predictive distribution of $Y_{k+1}$ described in Section~\ref{sub:proposed_architecture}.
 Although predictions given the previous time step provide good performances, it is limited as many applications require multi-steps forecasts.
 In order to explore longer ranges, we can simply run our model to get $N$ samples for any time horizon $p$.
-We report RMSE and MAE criteria by averaging the forecasts of these $N$ draws.
+We report RMSE criteria by averaging the forecasts of these $N$ draws.
 The associated intervals containing 95\% of the samples are displayed in Figure~\ref{fig:filter_k+24}, for $1\leq p \leq 24$.
 
 We compared our model with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}.
@@ -255,7 +259,7 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($k<24$) and without ($k>24$).
 		Since resampling of particles is no longer available at that point, the uncertainty grows for our model.
 		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).
-		Aggregated results on the entire validation set for the RMSE and MAE criteria can be found in Table~\ref{tab:ci_comparison}.}
+		Aggregated results on the entire validation set for the RMSE and PICP criteria can be found in Table~\ref{tab:ci_comparison}.}
 	\includegraphics[width=\linewidth]{filter_kp24_ett.png}
 	\includegraphics[width=\linewidth]{filter_kp24_ett_2.png}
 	\label{fig:filter_k+24}
@@ -263,19 +267,19 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 
 \begin{table}[htpb]
 	\centering
-	\caption{Comparison of RMSE, MAE and computation time of our model against the benchmarked MC Dropout methods and HMM.
+	\caption{Comparison of RMSE, PICP and computation time of our model against the benchmarked MC Dropout methods and HMM.
 		This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set.
 		Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 		Mean values of the estimators are displayed along with their variance.}
 	\label{tab:ci_comparison}
 	\begin{tabular}{llll}
 		\toprule
-		             & RMSE            & MAE             & Computation time  \\
+		             & RMSE            & PICP   & Computation time  \\
 		\toprule
-		SMCL (ours)  & $0.24 \pm 0.13$ & $0.21 \pm 0.12$ & $210 ms \pm 75.7$ \\
-		MCD $p=0.01$ & $0.25 \pm 0.15$ & $0.21 \pm 0.14$ & $193 ms \pm 60.4$ \\
-		MCD $p=0.05$ & $0.28 \pm 0.15$ & $0.24 \pm 0.13$ & $193 ms \pm 60.4$ \\
-		HMM          & $0.46 \pm 0.19$ & $0.40 \pm 0.17$ & $994 ms \pm 21.4$ \\
+		SMCL (ours)  & $0.24 \pm 0.13$ & $98\%$ & $210 ms \pm 75.7$ \\
+		MCD $p=0.01$ & $0.25 \pm 0.15$ & $59\%$ & $193 ms \pm 60.4$ \\
+		MCD $p=0.05$ & $0.28 \pm 0.15$ & $65\%$ & $193 ms \pm 60.4$ \\
+		HMM          & $0.46 \pm 0.19$ & $--$   & $994 ms \pm 21.4$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
