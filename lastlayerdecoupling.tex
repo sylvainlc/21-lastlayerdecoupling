@@ -1,6 +1,8 @@
-\documentclass[journal]{IEEEtran}
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
 
 % Packages
+\usepackage{cite}
 \usepackage{amsmath} % Math environments
 \usepackage{amsfonts, dsfont} % Math fonts
 \usepackage{bbold}
@@ -9,13 +11,27 @@
 \usepackage{booktabs,xcolor}
 \usepackage[ruled,vlined]{algorithm2e}
 \graphicspath{ {./images/} }
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
-\title{Last layer state space model for representation learning and uncertainty quantification}
+\title{Last layer state space model for representation learning and uncertainty quantification
+\thanks{This work was supported by grants from Région Ile-de-France.}
+}
 
-\author{Max Cohen, Maurice Charbit and Sylvain Le Corff
-	\thanks{This work was supported by grants from Région Ile-de-France.}
-	\thanks{Max Cohen and Sylvain Le Corff are with with Samovar, T\'el\'ecom SudParis, CITI, TIPIC, Institut Polyechnique de Paris, (e-mail: max.cohen@telecom-sudparis.eu).}
-	\thanks{Maurice Charbit is with Accenta, Boulogne-Billancourt (e-mail: maurice.charbit@accenta.fr).}}
+\author{\IEEEauthorblockN{Max Cohen}
+\IEEEauthorblockA{\textit{T\'el\'ecom SudParis, CITI, TIPIC} \\
+Institut Polyechnique de Paris \\
+max.cohen@telecom-sudparis.eu}
+\and
+\IEEEauthorblockN{Maurice Charbit}
+\IEEEauthorblockA{\textit{Accenta, Boulogne-Billancourt} \\
+maurice.charbit@accenta.fr}
+\and
+\IEEEauthorblockN{Sylvain Le Corff}
+\IEEEauthorblockA{\textit{T\'el\'ecom SudParis, CITI, TIPIC} \\
+Institut Polyechnique de Paris \\
+sylvain.lecorff@gmail.com}
+}
 
 \begin{document}
 \maketitle
@@ -300,7 +316,7 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 \label{sec:conclusion}
 
 In this paper, we introduced a decoupled architecture for uncertainty estimation on a time series dataset.
-Our deep neural network backbone is responsible for extracting high level features, while particle filtering allows modelling recurrent non linear uncertainty.
+Our deep neural network backbone is responsible for extracting high level features, while particle filtering allows modelling recurrent nonlinear uncertainty.
 Our proposed model improves confidence interval quality, compared to MC Dropout methods, while remaining simple and efficient to train, compared to VI alternatives.
 
 We demonstrate the potential behind implementing latent space models as a modified RNN cell ;
