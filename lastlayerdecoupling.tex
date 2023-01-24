@@ -43,10 +43,14 @@ Current deep learning frameworks allow stacking arbitrary high number of recurre
 However, many critical applications, such as medical diagnosis or drug design discovery, require not only accurate predictions, but a good estimate of their uncertainty (\cite{Crowson2016AssessingCalibration, Mervin2020UncertaintyQuantification}).
 Fostering the dissemination of deep learning-based algorithms to such fields requires to design new approaches for uncertainty quantification.
 
-In this context, Bayesian statistics are able to approximate the distributions of future observations and to provide uncertainty estimation \cite{Hinton1995BayesianLF}.
+Bayesian statistics are able to approximate the distributions of future observations and to provide uncertainty estimation \cite{Hinton1995BayesianLF}.
 Several architectures inspired by Variational Inference (VI, see \cite{Jordan2004AnIT}) emerged by considering latent states as random variables and approximating their posterior distribution.
 The authors of \cite{Chung2015NIPS,10.5555/3157096.3157343} built on a traditional recurrent architecture by modelling temporal dependencies between these latent random states. Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
 
+Sequential Monte Carlo (SMC) methods have also been successfully applied to Recurrent Neural Networks.
+Instead of computing a single latent vector at each time step, a set of particles representing the distribution of the latent space are propagated, and associated with importance weights.
+In \cite{maddison2017filtering,naesseth2017variational}, the authors were able to model complex distributions on dependant data.
+We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
 
 In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions. Such Bayesian neural networks have been proposed and studied in a variety of works, see for instance \cite{hernandez2015probabilistic,khan2018fast,teye2018bayesian}. However, these methods are computationally intensive for high dimensional models and we do not have statistical guarantees on their ability to capture the target  posterior distribution, see \cite{NEURIPS2020_b6dfd418}.
 
@@ -58,15 +62,15 @@ However, these frequentist approaches fail to guarantee proper calibration of th
 
 In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains a deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
 
-
-Inspired by \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning, in the context of dependent data. This new method for uncertainty estimation combines high expressivity, quality uncertainty estimations and ease of training. Our proposed architecture is composed of an arbitrary sequential model, followed by a decoupled state space model layer. Using a state space model in the last layer allows to introduce complex predictive distributions for the observations based on task-dependent latent data. However, because the loglikelihood of the observations is not available explicitly in such a setting, the second stage training requires using approximate sampling methods. In this paper, we explore Sequential Monte Carlo methods, which were already successfully combined with recurrent neural networks to tackle variable sequential problems, see for instance \cite{naesseth2017variational,maddison2017filtering,Ma2020}.
-We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
-Particle filters have also proven reliable in other fields, such as presented in \cite{Liu2020LSTMPF} for object tracking.
-
-
-
-%The former can be fitted through a traditional gradient descent iteration, while the latter is trained using Sequential Monte Carlo methods.
-%Our uncertainty estimation layer can thus be built on top of an existing, already trained model. The model is presented in Section~\ref{sec:decoupling} and numerical experiments are displayed in Section~\ref{sec:exp}.
+Inspired by \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning, in the context of dependent data.
+This new method combines high expressivity, quality uncertainty estimations and ease of training.
+Our main contributions are as follows:
+\begin{itemize}
+	\item We propose a decoupled architecture composed of an arbitrary sequential model and a state space model layer.
+	\item This last layer allows to introduce complex predictive distributions for the observations.
+	      Its parameters are estimated through approximate samplings using Sequential Monte Carlo methods, as the likelihood of the observations is not available explicitly in such a setting.
+	\item Our methodology allows for arbitrary deep architectures, and is less overconfident than frequentist approaches.
+\end{itemize}
 
 \section{Last layer decoupling}
 Estimating the parameters of potentially high-dimensional models with unobserved (i.e. noisy) layers is a challenging task.
