@@ -66,7 +66,7 @@ The authors of \cite{Chung2015NIPS,10.5555/3157096.3157343} built on a tradition
 Sequential Monte Carlo (SMC) methods have also been successfully applied to Recurrent Neural Networks.
 Instead of computing a single latent vector at each time step, a set of particles representing the distribution of the latent space are propagated, and associated with importance weights.
 In \cite{maddison2017filtering,naesseth2017variational}, the authors were able to model complex distributions on dependant data.
-We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as Transformer.
+We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as the Transformer.
 
 In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions. Such Bayesian neural networks have been proposed and studied in a variety of works, see for instance \cite{hernandez2015probabilistic,khan2018fast,teye2018bayesian}. However, these methods are computationally intensive for high dimensional models and we do not have statistical guarantees on their ability to capture the target  posterior distribution, see \cite{NEURIPS2020_b6dfd418}.
 
@@ -85,7 +85,7 @@ Our main contributions are as follows:
 	\item We propose a decoupled architecture composed of an arbitrary sequential model and a state space model layer.
 	\item This last layer allows to introduce complex predictive distributions for the observations.
 	      Its parameters are estimated through approximate samplings using Sequential Monte Carlo methods, as the likelihood of the observations is not available explicitly in such a setting.
-	\item Our methodology allows for arbitrary deep architectures, and is less overconfident than frequentist approaches.
+	\item Our methodology allows for arbitrary deep architectures, and does not suffer the overconfidence of frequentist approaches.
 \end{itemize}
 
 \section{Last layer decoupling}
@@ -102,9 +102,9 @@ In this paper, we consider an arbitrary multi-layer neural network $h_\varphi$ w
 \begin{align*}
 	\widetilde U_{1:T} & = h_\varphi(U_{1:T})\,, & \text{input model.}
 \end{align*}
-In order to get an estimate $\hat \varphi$, we also introduce an auxiliary function $\kappa_\psi$ to design a first recurrent architecture to model the observations: for all $1 \leq k \leq T$, $Y_k = \kappa_\psi(Y_{k-1}, \widetilde U_k)$ and $Y_0 = \kappa_\psi(\widetilde U_0)$.
-The input model can then be trained by performing gradient descent to minimize the prediction error using a standard loss function.
-We keep the estimated parameters $\hat \varphi$ while the auxiliary function $\kappa_\psi$, only designed to model the observations, is discarded.
+We produce an estimate $\hat \varphi$ during the first training stage, by introducing an auxiliary function $\kappa_\psi$ to model the observations as follows: for all $1 \leq k \leq T$, $Y_k = \kappa_\psi(Y_{k-1}, \widetilde U_k) + \epsilon_k$ and $Y_0 = \kappa_\psi(\widetilde U_0) + \epsilon_0$, where $(\epsilon_k)_{k\leq 0}$ are i.i.d. centered Gaussian random variables with unknown variance.
+The input model is trained on a simple deterministic regression task, by performing gradient descent on the mean squared error, leading to a first estimate of $\varphi$ and $\psi$.
+We keep the estimated parameters $\hat \varphi$ while the auxiliary function $\kappa_\psi$ and its parameters, only designed to model the observations, are discarded.
 
 \subsection{State space model}
 \label{sub:proposed_architecture}
@@ -125,14 +125,14 @@ All implementation and training details are postponed to Section~\ref{sec:exp}.
 \begin{figure}[htpb]
 	\centering
 	\caption{Our architecture combining a generic input model with a state space model on the last layer.}
-	\includegraphics[width=0.7\linewidth]{architecture.png}
+	\includegraphics[width=0.5\linewidth]{architecture.png}
 	\label{fig:architecture}
 \end{figure}
 
 \section{Sequential Monte Carlo Layer}%
 \label{sub:uncertainty_estimation}
 In this section, we detail how to estimate the parameters $\theta$, $\Sigma_x$ and $\Sigma_y$ in the model introduced in Section~\ref{sub:proposed_architecture}, from a record of observations $Y_{1:T}$.
-This is challenging because the loglikelihood of the observations is not available explicitly, as it would require integrating over the distribution of the hidden states $X_{1:T}$.
+This is challenging because the likelihood of the observations is not available explicitly, as it would require integrating over the hidden states $X_{1:T}$.
 Consequently, the score function is intractable.
 We propose to optimize a Monte Carlo estimator of this score function, using Fisher's identity \cite{monographie-randal}:
 \begin{equation}
@@ -145,11 +145,7 @@ In the following paragraphs, we denote by $\Psi_{\mu, \Sigma}$ the Gaussian prob
 \subsection{Particle filter}
 The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for a nonlinear state space model, but it can be approximated using a family of particles $(\xi^{\ell}_{1:T})_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_T)_{\ell=1}^N$.
 % We first produce a set of histories  associated with importance weights  using the Path-space smoother.
-At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight:
-\[
-	\omega_0^{\ell} \propto  \Psi_{Y_0, \Sigma_y}(f_\theta(\xi^{\ell}_0)) \,.
-\]
-%where $\ell_0(\cdot) = \Psi_{Y_0, \Sigma_y}(f_\theta(\cdot))$.
+At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight $\omega_0^{\ell} \propto  \Psi_{Y_0, \Sigma_y}(f_\theta(\xi^{\ell}_0))$.
 Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
 \[
 	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},\widetilde U_k,x)\,.
@@ -227,23 +223,19 @@ The input dimension $d_\textnormal{in}=6$ corresponds to the number of power loa
 In order to estimate the parameters $\varphi$, we introduce an auxiliary GRU layer responsible for computing oil temperature predictions.
 During the training, we minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_\varphi(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
 
-\textbf{The State Space model} is implemented using PyTorch implementations of  RNN and Linear layers, in order to use auto differentiation.
+\textbf{The State Space model} is implemented using PyTorch implementations of  RNN and Linear layers.
 We chose the following form for $f_\theta$ and $g_\theta$:
 \begin{align*}
 	g_\theta & : X_{k-1}, \widetilde U_k \mapsto \tanh(W_{gx} X_{k-1} + b_{gx} + W_{gu} \widetilde U_k + b_{gu})\,, \\
 	f_\theta & : X_k \mapsto  \sigma(W_f X_k + b_f)\,,
 \end{align*}
 where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f\}$ are unknown parameters.
-In this form, since the update rule for both $\Sigma_x$ and $\Sigma_y$ are available explicitly, we compute the following at each training step instead of using gradient descent:
+In this form, we are able to update both $\Sigma_x$ and $\Sigma_y$ using explicit update rules instead of gradient descent:
 \begin{align*}
 	\Sigma_x & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (\tanh^{-1}(\xi_k^\ell) - g_{\hat \theta}(\xi^\ell_{k-1}, \widetilde U_k))^2\,, \\
 	\Sigma_y & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (Y_k - f_{\hat \theta}(\xi^\ell_k))^2 \,.
 \end{align*}
-All following experiments were computed with $N=100$ particles.
-
-%\subsection{Trainings}
-%\label{sub:trainings}
-All training experiments are conducted with a batch size of 32, using the Adam optimizer introduced in \cite{Kingma2015AdamAM}.
+All following experiments are conducted with $N=100$ particles and a batch size of 32, using the Adam optimizer introduced in \cite{Kingma2015AdamAM}.
 The learning rate was chosen using a simple grid search.
 We train models for a maximum of 50 epochs, and employ early stopping to prevent overfit.
 
@@ -251,9 +243,9 @@ We train models for a maximum of 50 epochs, and employ early stopping to prevent
 \label{sub:evaluations}
 
 In this section, we illustrate the ability of our model to capture the distribution of future observations, by evaluating the benchmarked models using the following protocol. We draw 48 hours long samples $(u_{1:48}, y_{1:48})$ from the validation dataset, composed of a 24 hour long lookback window $(u_{1:24}, y_{1:24})$, containing historic commands and observations, and a predictions window where only future commands are available $(u_{25:48})$.
-Each model produces $N$ 24 hour long forecasts $(y_{25:48}^{(i)})_{i=1}^N$.
+Each model produces $N=100$ 24 hour long forecasts $(y_{25:48}^{(i)})_{i=1}^N$.
 We compute the Root Mean Squared Error (RMSE) between the observations and the average of the forecasts: $\mathrm{RMSE}^2 = T^{-1} \sum_{k=1}^T (Y_k - N^{-1} \sum_{i=1}^N y_k^{(i)})^2$.
-Additionally, we evaluate the Prediction Interval Coverage Probability (PICP, see \cite{Durga2006PICP}) which measures the ratio of observations falling between a 95\% confidence interval: $\mathrm{PICP} = T^{-1} \sum^{T}_{k=1} \mathbb{1}_{[y_L^k, y_U^k]}(Y_k)$, where $y_U^k$ (resp. $y_L^k$) is the upper (resp. lower) bound confidence intervals.
+Additionally, we evaluate the Prediction Interval Coverage Probability (PICP, see \cite{Durga2006PICP}) which measures the ratio of observations falling between a 95\% confidence interval: $\mathrm{PICP} = T^{-1} \sum^{T}_{k=1} \mathbb{1}_{[y_L^k, y_U^k]}(Y_k)$, where $y_U^k$ (resp. $y_L^k$) is the upper (resp. lower) bound of the confidence intervals.
 Both criteria are reported in Table~\ref{tab:ci_comparison}.
 
 For our proposed model, predictions can be performed by approximating the predictive density $p_{\theta,\varphi}(y_{k+1}|U_{1:k+1},Y_{1:k})$ by
@@ -263,11 +255,10 @@ $$
 where $ p_{\widehat\theta,\widehat\varphi}(y_{k+1}|\xi_k^i,U_{k+1})$ is the predictive distribution of $Y_{k+1}$ described in Section~\ref{sub:proposed_architecture}.
 Although predictions given the previous time step provide good performances, it is limited as many applications require multi-steps forecasts.
 In order to explore longer ranges, we can simply run our model to get $N$ samples for any time horizon $p$.
-We report RMSE criteria by averaging the forecasts of these $N$ draws.
 The associated intervals containing 95\% of the samples are displayed in Figure~\ref{fig:filter_k+24}, for $1\leq p \leq 24$.
 
 We compared our model with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}.
-The optimal dropout rate $p_\textnormal{drop}=0.01$ that we tuned by grid search is smaller than the proposed value in the original paper, which may be the consequence of using much longer time series similarly to results presented in \cite{Zhu2017DeepAC}.
+The optimal dropout rate $p_\textnormal{drop}=0.01$ that we tuned by grid search is smaller than the proposed value in the original paper, which may be due to our much longer time series, similarly to results presented in \cite{Zhu2017DeepAC}.
 Additionally, we evaluate the model with $p_\textnormal{drop}=0.05$, which we show slightly degrades performances.
 The training procedure is similar to traditional recurrent models ; during inference, we draw $100$ samples from the dropout layers, and compute the same average forecasts and  intervals as for our model.
 Despite being based on the same deep learning architecture, the MC dropout model is still largely overconfident, while our proposed model provide more credible empirical confidence intervals.
@@ -280,8 +271,8 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 		Since resampling of particles is no longer available at that point, the uncertainty grows for our model.
 		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).
 		Aggregated results on the entire validation set for the RMSE and PICP criteria can be found in Table~\ref{tab:ci_comparison}.}
-	\includegraphics[width=\linewidth]{filter_kp24_ett.png}
-	\includegraphics[width=\linewidth]{filter_kp24_ett_2.png}
+	\includegraphics[width=0.8\linewidth]{filter_kp24_ett.png}
+	\includegraphics[width=0.8\linewidth]{filter_kp24_ett_2.png}
 	\label{fig:filter_k+24}
 \end{figure}
 
