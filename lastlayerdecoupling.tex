@@ -29,8 +29,7 @@ maurice.charbit@accenta.fr}
 \and
 \IEEEauthorblockN{Sylvain Le Corff}
 \IEEEauthorblockA{\textit{T\'el\'ecom SudParis, CITI, TIPIC} \\
-Institut Polyechnique de Paris \\
-sylvain.lecorff@gmail.com}
+Institut Polyechnique de Paris}
 }
 
 \begin{document}
@@ -158,14 +157,31 @@ number of particles on-the-fly, see \cite{elvira2016adapting,elvira2021performan
 Our framework allows the use of any particle smoother to estimate \eqref{eq:grad_ll}.
 In this paper, we first opt for the Path-space smoother \cite{Kitagawa1996} for its simplicity, in order to illustrate our approach.
 In practice, it often leads to particle path degeneracy \cite{Andrieu2005}, which can be mitigated by substituting a more complex smoother such as the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}. With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation:
-$$
-	\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})\,,
-$$
-where $p_\theta$ is the joint probability density function of $(X_{1:T}, Y_{1:T})$ for the model described in Section~\ref{sub:proposed_architecture}.
+Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}. With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation $\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})$,  where $p_\theta$ is the joint probability density function of $(X_{1:T}, Y_{1:T})$ for the model described in Section~\ref{sub:proposed_architecture}.
 
 
 \subsection{Stochastic Gradient Descent for online estimation}
+The degeneracy relative to the smoothing problem can be overcome using
+\emph{backward sampling}. It is specifically designed for additive functionals so it is well suited to our setting \eqref{eq:grad_ll} since
+$$
+	\nabla_\theta\log p_\theta(x_{1:T}, y_{1:T}) = \sum_{t=1}^T \nabla_\theta \log m_{\theta}(x_{t-1},\widetilde u_t;x_t)  r_{\theta}(x_{t},y_t)\,,
+$$
+where $m_{\theta}(x_{t-1},\widetilde u_t;\cdot)$ is the transition density of the state model and $r_{\theta}(x_{t},\cdot)$ is the density of the conditional distribution of $y_t$ given $x_t$ and by convention $m_{\theta}(x_{0},\widetilde u_1;\cdot) = \rho_0(\cdot)$.
+
+The Monte Carlo estimator of the score function can be obtained online  by setting,
+%\begin{equation} \label{eq:def:PaRIS:score}
+$	\widehat {S}^N_\theta(y_{1:T}) = \sum_{i = 1}^N \omega_T^i\tau_T^i$, 
+%\end{equation}
+where the statistics $\{\tau_s^i\}_{i = 1}^N$ satisfy the recursion
+\begin{equation}
+	\label{eq:pms:online}
+	\tau_{s + 1}^{i} = \tau_{s}^{I_{s+1}^{i}} + \tilde{h}_s(\xi_{s}^{I_{s+1}^{i}}, \xi_{s + 1}^{i}),
+\end{equation}
+where
+$$
+	\tilde{h}_s(x_s,x_{s+1}) = \nabla_\theta \log m_{\theta}(x_{s},\widetilde u_{s+1};x_{s+1}) r_{\theta}(x_{s+1},y_{s+1})\,.
+$$
+Following \cite{DelMoral2010,Olsson2014EfficientPO,martin2020backward,gloaguen2022pseudo}, the degeneracy of the path-space smoother can be overcome by performing an online update of the statistics using the backward kernel of the hidden Markov chain.
 An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
 
 In state space models, recursive maximum likelihood estimation produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
@@ -201,12 +217,12 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 
 \section{Experiments}
 \label{sec:exp}
-\subsection{Data}
+\subsection{Data and model}
 \label{sub:data}
 We benchmarked our approach on the public Electricity Transformer Temperature (ETT) Dataset, designed in \cite{Zhou2021Informer} to forecast Oil temperature based on hourly power load records (ETTh1 subset).
-
-\subsection{Model}%
-\label{sub:models}
+%
+%\subsection{Model}%
+%\label{sub:models}
 
 \textbf{The Input model} is a $L=3$ layered GRU model, as defined in the deep learning framework PyTorch\footnote{\href{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}{https://pytorch.org/docs/stable/generated/torch.nn.GRU.html}}: for all $1 \leq \ell \leq L$ and all $1 \leq k \leq T$,
 \begin{align*}
@@ -271,7 +287,7 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).
 		Aggregated results on the entire validation set for the RMSE and PICP criteria can be found in Table~\ref{tab:ci_comparison}.}
 	\includegraphics[width=0.8\linewidth]{filter_kp24_ett.png}
-	\includegraphics[width=0.8\linewidth]{filter_kp24_ett_2.png}
+	%\includegraphics[width=0.8\linewidth]{filter_kp24_ett_2.png}
 	\label{fig:filter_k+24}
 \end{figure}
 
