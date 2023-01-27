@@ -80,7 +80,7 @@ In an effort to provide an alternative strategy with limited computation overhea
 
 Inspired by \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning, in the context of dependent data.
 This new method combines high expressivity, quality uncertainty estimations and ease of training.
-Our main contributions are as follows:
+Our main contributions are as follows.
 \begin{itemize}
 	\item We propose a decoupled architecture composed of an arbitrary sequential model and a state space model layer.
 	\item This last layer allows to introduce complex predictive distributions for the observations.
@@ -102,7 +102,7 @@ In this paper, we consider an arbitrary multi-layer neural network $h_\varphi$ w
 \begin{align*}
 	\widetilde U_{1:T} & = h_\varphi(U_{1:T})\,, & \text{input model.}
 \end{align*}
-We produce an estimate $\hat \varphi$ during the first training stage, by introducing an auxiliary function $\kappa_\psi$ to model the observations as follows: for all $1 \leq k \leq T$, $Y_k = \kappa_\psi(Y_{k-1}, \widetilde U_k) + \epsilon_k$ and $Y_0 = \kappa_\psi(\widetilde U_0) + \epsilon_0$, where $(\epsilon_k)_{k\leq 0}$ are i.i.d. centered Gaussian random variables with unknown variance.
+We produce an estimate $\hat \varphi$ during the first training stage, by introducing an auxiliary function $\kappa_\psi$ to model the observations as follows: for all $1 \leq k \leq T$, $Y_k = \kappa_\psi(Y_{k-1}, \widetilde U_k) + \epsilon_k$ and $Y_0 = \kappa_\psi(\widetilde U_0) + \epsilon_0$, where $(\epsilon_k)_{k\leq 0}$ are i centered Gaussian random variables with unknown variance.
 The input model is trained on a simple deterministic regression task, by performing gradient descent on the mean squared error, leading to a first estimate of $\varphi$ and $\psi$.
 We keep the estimated parameters $\hat \varphi$ while the auxiliary function $\kappa_\psi$ and its parameters, only designed to model the observations, are discarded.
 
@@ -151,15 +151,14 @@ Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^
 	\pi_{k}(\ell,x) \propto \omega_{k-1}^{\ell} p_k(\xi^{\ell}_{k-1},\widetilde U_k,x)\,.
 \]
 In this application we use for $p_k(\xi^{\ell}_{k-1},\widetilde U_k,\cdot)$ the prior kernel $\Psi_{g_\theta(\xi^\ell_{k-1}, \tilde U_k), \Sigma_x}$.
-For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \Psi_{Y_k, \Sigma_y}(f_\theta(\xi^{\ell}_k))$.%, where $\ell_k(\cdot) = \Psi_{Y_k, \Sigma_y}(f_\theta(\cdot))$.
+For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \Psi_{Y_k, \Sigma_y}(f_\theta(\xi^{\ell}_k))$. Such a particle filter with multinomial resampling is referred to as the bootstrap algorithm, see \cite{gordon1993novel}. It has been extended and analyzed in many directions in the past decades, see \cite{pitt1999filtering,douc2005comparison,Chopin_2020}. In other lines of works, the adaptive tuning of the Monte Carlo effort has been analyzed in order to  adapt the
+number of particles on-the-fly, see \cite{elvira2016adapting,elvira2021performance}.
 
 \subsection{Particle smoother}
 Our framework allows the use of any particle smoother to estimate \eqref{eq:grad_ll}.
-In this paper, we opt for the Path-space smoother \cite{Kitagawa1996} for its simplicity, in order to illustrate our approach.
+In this paper, we first opt for the Path-space smoother \cite{Kitagawa1996} for its simplicity, in order to illustrate our approach.
 In practice, it often leads to particle path degeneracy \cite{Andrieu2005}, which can be mitigated by substituting a more complex smoother such as the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
-
-With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation:
+Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}. With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation:
 $$
 	\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})\,,
 $$
@@ -229,12 +228,12 @@ We chose the following form for $f_\theta$ and $g_\theta$:
 	g_\theta & : X_{k-1}, \widetilde U_k \mapsto \tanh(W_{gx} X_{k-1} + b_{gx} + W_{gu} \widetilde U_k + b_{gu})\,, \\
 	f_\theta & : X_k \mapsto  \sigma(W_f X_k + b_f)\,,
 \end{align*}
-where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f\}$ are unknown parameters.
-In this form, we are able to update both $\Sigma_x$ and $\Sigma_y$ using explicit update rules instead of gradient descent:
-\begin{align*}
-	\Sigma_x & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (\tanh^{-1}(\xi_k^\ell) - g_{\hat \theta}(\xi^\ell_{k-1}, \widetilde U_k))^2\,, \\
-	\Sigma_y & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (Y_k - f_{\hat \theta}(\xi^\ell_k))^2 \,.
-\end{align*}
+where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f,\Sigma_x,\Sigma_y\}$ are unknown parameters. 
+%In this form, we are able to update both $\Sigma_x$ and $\Sigma_y$ using explicit update rules instead of gradient descent:
+%\begin{align*}
+%	\Sigma_x & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (\tanh^{-1}(\xi_k^\ell) - g_{\hat \theta}(\xi^\ell_{k-1}, \widetilde U_k))^2\,, \\
+%	\Sigma_y & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (Y_k - f_{\hat \theta}(\xi^\ell_k))^2 \,.
+%\end{align*}
 All following experiments are conducted with $N=100$ particles and a batch size of 32, using the Adam optimizer introduced in \cite{Kingma2015AdamAM}.
 The learning rate was chosen using a simple grid search.
 We train models for a maximum of 50 epochs, and employ early stopping to prevent overfit.
