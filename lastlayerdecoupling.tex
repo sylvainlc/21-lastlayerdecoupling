@@ -168,24 +168,15 @@ where $p_\theta$ is the joint probability density function of $(X_{1:T}, Y_{1:T}
 \subsection{Stochastic Gradient Descent for online estimation}
 The degeneracy relative to the smoothing problem can be overcome using
 \emph{backward sampling}. It is specifically designed for additive functionals so it is well suited to our setting \eqref{eq:grad_ll} since
-$$
-	\nabla_\theta\log p_\theta(x_{1:T}, y_{1:T}) = \sum_{t=1}^T \nabla_\theta \log m_{\theta}(x_{t-1},\widetilde u_t;x_t)  r_{\theta}(x_{t},y_t)\,,
-$$
+$\nabla_\theta\log p_\theta(x_{1:T}, y_{1:T}) = \sum_{t=1}^T \nabla_\theta \log m_{\theta}(x_{t-1},\widetilde u_t;x_t)  r_{\theta}(x_{t},y_t)$,
 where $m_{\theta}(x_{t-1},\widetilde u_t;\cdot)$ is the transition density of the state model and $r_{\theta}(x_{t},\cdot)$ is the density of the conditional distribution of $y_t$ given $x_t$ and by convention $m_{\theta}(x_{0},\widetilde u_1;\cdot) = \rho_0(\cdot)$.
 
 The Monte Carlo estimator of the score function can be obtained online  by setting,
 %\begin{equation} \label{eq:def:PaRIS:score}
 $	\widehat {S}^N_\theta(y_{1:T}) = \sum_{i = 1}^N \omega_T^i\tau_T^i$,
 %\end{equation}
-where the statistics $\{\tau_s^i\}_{i = 1}^N$ satisfy the recursion
-\begin{equation}
-	\label{eq:pms:online}
-	\tau_{s + 1}^{i} = \tau_{s}^{I_{s+1}^{i}} + \tilde{h}_s(\xi_{s}^{I_{s+1}^{i}}, \xi_{s + 1}^{i}),
-\end{equation}
-where
-$$
-	\tilde{h}_s(x_s,x_{s+1}) = \nabla_\theta \log m_{\theta}(x_{s},\widetilde u_{s+1};x_{s+1}) r_{\theta}(x_{s+1},y_{s+1})\,.
-$$
+where the statistics $\{\tau_s^i\}_{i = 1}^N$ satisfy the recursion $\tau_{s + 1}^{i} = \tau_{s}^{I_{s+1}^{i}} + \tilde{h}_s(\xi_{s}^{I_{s+1}^{i}}, \xi_{s + 1}^{i})$,
+where $\tilde{h}_s(x_s,x_{s+1}) = \nabla_\theta \log m_{\theta}(x_{s},\widetilde u_{s+1};x_{s+1}) r_{\theta}(x_{s+1},y_{s+1})$.
 Following \cite{DelMoral2010,Olsson2014EfficientPO,martin2020backward,gloaguen2022pseudo}, the degeneracy of the path-space smoother can be overcome by performing an online update of the statistics using the backward kernel of the hidden Markov chain.
 An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
 
@@ -200,8 +191,6 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 \begin{algorithm}
 	\caption{Two-stage learning}
 	\label{alg:particle_filter}
-	\KwIn{$Y_{1:T}, U_{1:T}$}
-	\KwOut{$(\hat \varphi, \hat \theta)$}
 	$\hat \varphi \gets$ Train the input model $h_\varphi$\;
 	$\widetilde U_{1:T} \gets h_{\hat \varphi}(U_{1:T})$\;
 	Initialize parameter estimate $\widehat \theta_0$\;
@@ -239,9 +228,10 @@ We benchmarked our approach on the public Electricity Transformer Temperature (E
 where $\varphi = \{(W_{is}, b_{is}, W_{hs}, b_{hs}), s \in \{r, z, n\}\}$ are unknown parameters, and $\sigma: x \mapsto 1/(1+\mathrm{e}^{-x})$ is the sigmoid function.
 The first layer of the network is assimilated to the input vectors, $\widetilde U_t^0 \equiv U_k$ and $\widetilde U^\ell_0 \equiv 0$.
 % where $\varphi = \{W_{ir}, b_{ir}, W_{hr}, b_{hr}, W_{iz}, b_{iz}, W_{hz}, b_{hz}, W_{in}, b_{in}, W_{hn}, b_{hn}\}$ are unknown parameters
-The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6 as well.
+The input dimension $d_\textnormal{in}=6$ corresponds to the number of power load records of the dataset, we set the output dimension to 6.
 In order to estimate the parameters $\varphi$, we introduce an auxiliary GRU layer responsible for computing oil temperature predictions.
-During the training, we minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$ where for each sample $1 \leq i \leq N_{\texttt{sample}}$ in the dataset, $\texttt{model}_\varphi(U^i_{1:T})$ is the prediction associated with $Y^i_{1:T}$ obtained with this deterministic model.
+During the training, we minimize the cost function $\mathcal{L}_{\mathrm{input}}(\varphi) = \sum_{i=1}^{N_{\texttt{sample}}} \|\texttt{model}_{\varphi}(U^i_{1:T}) - Y^i_{1:T}\|^2$
+between each sample of the dataset and the associated prediction obtain with this deterministic model.
 
 \textbf{The State Space model} is implemented using PyTorch implementations of  RNN and Linear layers.
 We chose the following form for $f_\theta$ and $g_\theta$:
