@@ -101,7 +101,7 @@ In this paper, we consider an arbitrary multi-layer neural network $h_\varphi$ w
 \begin{align*}
 	\widetilde U_{1:T} & = h_\varphi(U_{1:T})\,, & \text{input model.}
 \end{align*}
-We produce an estimate $\hat \varphi$ during the first training stage, by introducing an auxiliary function $\kappa_\psi$ to model the observations as follows: for all $1 \leq k \leq T$, $Y_k = \kappa_\psi(Y_{k-1}, \widetilde U_k) + \epsilon_k$ and $Y_0 = \kappa_\psi(\widetilde U_0) + \epsilon_0$, where $(\epsilon_k)_{k\leq 0}$ are i centered Gaussian random variables with unknown variance.
+We produce an estimate $\hat \varphi$ during the first training stage, by introducing an auxiliary function $\kappa_\psi$ to model the observations as follows: for all $1 \leq k \leq T$, $Y_k = \kappa_\psi(Y_{k-1}, \widetilde U_k) + \epsilon_k$ and $Y_0 = \kappa_\psi(\widetilde U_0) + \epsilon_0$, where $(\epsilon_k)_{k\leq 0}$ are independent centered Gaussian random variables with unknown variance.
 The input model is trained on a simple deterministic regression task, by performing gradient descent on the mean squared error, leading to a first estimate of $\varphi$ and $\psi$.
 We keep the estimated parameters $\hat \varphi$ while the auxiliary function $\kappa_\psi$ and its parameters, only designed to model the observations, are discarded.
 
@@ -170,7 +170,7 @@ where $m_{\theta}(x_{t-1},\widetilde u_t;\cdot)$ is the transition density of th
 
 The Monte Carlo estimator of the score function can be obtained online  by setting,
 %\begin{equation} \label{eq:def:PaRIS:score}
-$	\widehat {S}^N_\theta(y_{1:T}) = \sum_{i = 1}^N \omega_T^i\tau_T^i$, 
+$	\widehat {S}^N_\theta(y_{1:T}) = \sum_{i = 1}^N \omega_T^i\tau_T^i$,
 %\end{equation}
 where the statistics $\{\tau_s^i\}_{i = 1}^N$ satisfy the recursion
 \begin{equation}
@@ -244,7 +244,7 @@ We chose the following form for $f_\theta$ and $g_\theta$:
 	g_\theta & : X_{k-1}, \widetilde U_k \mapsto \tanh(W_{gx} X_{k-1} + b_{gx} + W_{gu} \widetilde U_k + b_{gu})\,, \\
 	f_\theta & : X_k \mapsto  \sigma(W_f X_k + b_f)\,,
 \end{align*}
-where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f,\Sigma_x,\Sigma_y\}$ are unknown parameters. 
+where $\theta = \{W_{gx}, b_{gx}, W_{gu}, b_{gu}, W_f, b_f,\Sigma_x,\Sigma_y\}$ are unknown parameters.
 %In this form, we are able to update both $\Sigma_x$ and $\Sigma_y$ using explicit update rules instead of gradient descent:
 %\begin{align*}
 %	\Sigma_x & = T^{-1} \sum_{\ell=1}^N \sum_{k=1}^T \omega_T^\ell (\tanh^{-1}(\xi_k^\ell) - g_{\hat \theta}(\xi^\ell_{k-1}, \widetilde U_k))^2\,, \\
