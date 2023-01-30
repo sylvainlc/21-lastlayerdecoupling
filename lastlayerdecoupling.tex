@@ -60,14 +60,14 @@ Fostering the dissemination of deep learning-based algorithms to such fields req
 
 Bayesian statistics are able to approximate the distributions of future observations and to provide uncertainty estimation \cite{Hinton1995BayesianLF}.
 Several architectures inspired by Variational Inference (VI, see \cite{Jordan2004AnIT}) emerged by considering latent states as random variables and approximating their posterior distribution.
-The authors of \cite{Chung2015NIPS,10.5555/3157096.3157343} built on a traditional recurrent architecture by modelling temporal dependencies between these latent random states. Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
+The authors of \cite{10.5555/3157096.3157343} built on a traditional recurrent architecture by modelling temporal dependencies between these latent random states. Results presented in \cite{Fortunato2017bayesian} yield improved performances when considering local gradient information for computing the posterior.
 
 Sequential Monte Carlo (SMC) methods have also been successfully applied to Recurrent Neural Networks.
 Instead of computing a single latent vector at each time step, a set of particles representing the distribution of the latent space are propagated, and associated with importance weights.
 In \cite{maddison2017filtering,naesseth2017variational}, the authors were able to model complex distributions on dependant data.
 We turn to \cite{Martin2020TheMC} for an example using more complex neural architectures, such as the Transformer.
 
-In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions. Such Bayesian neural networks have been proposed and studied in a variety of works, see for instance \cite{hernandez2015probabilistic,khan2018fast,teye2018bayesian}. However, these methods are computationally intensive for high dimensional models and we do not have statistical guarantees on their ability to capture the target  posterior distribution, see \cite{NEURIPS2020_b6dfd418}.
+In \cite{Blundell2015}, the authors considered weights as random variables and proposed approximations of their posterior distributions allowing more robust predictions. Such Bayesian neural networks have been proposed and studied in a variety of works, see for instance \cite{hernandez2015probabilistic,teye2018bayesian}. However, these methods are computationally intensive for high dimensional models and we do not have statistical guarantees on their ability to capture the target  posterior distribution, see \cite{NEURIPS2020_b6dfd418}.
 
 %Variational methods display encouraging results for modelling uncertainty in existing models, but require significant alteration of the model, as well as its training mechanism.
 Monte Carlo Dropout (MC Dropout) methods offer to capture uncertainty by leveraging Dropout during both training and evaluation tasks, producing variable predictions from a single trained recurrent model, see \cite{Gal2016NIPS}.
@@ -75,7 +75,10 @@ In the recent years, MC Dropout methods have been applied in many industrial fie
 Alternatively, ensemble methods consist in training distinct networks to obtain a combined prediction, as shown in \cite{Pearce2018}.
 However, these frequentist approaches fail to guarantee proper calibration of the model, as highlighted by \cite{ashukha2020pitfalls}, and suffer various limitations, see \cite{Fong2020}.
 
-In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting training in two stages to solve classification problems for independent data: representation learning and uncertainty estimation. The two steps proceed as follows: (i) the algorithm first trains a deep classifier to obtain accurate task-dependent representations of the data, and then (ii) ensemble models are trained using these representations and the output. Their experiments indicate that last-layer algorithms outperform baseline networks and that a single last layer is an appealing trade-off between computational cost and uncertainty quantification. However, this method is restricted to independent and identically distributed data and cannot be directly applied to time series.
+In an effort to provide an alternative strategy with limited computation overhead, \cite{Brosse2020OnLA} suggests splitting representation learning and uncertainty estimation to solve classification problems for independent data.
+A deep classifier is first trained to obtain task dependent representations of the data, on which ensemble models are fitted to approximate the distribution of the observations.
+Their experiments indicate that performing uncertainty estimation on the last-layer of the model outperforms baseline networks and is an appealing trade-off between computational cost and uncertainty quantification.
+However, as this method is restricted to independent data, it cannot be directly applied to time series.
 
 Inspired by \cite{Brosse2020OnLA}, we propose a last layer approach to split uncertainty quantification from representation learning, in the context of dependent data.
 This new method combines high expressivity, quality uncertainty estimations and ease of training.
@@ -115,11 +118,10 @@ For all $k \geq 1$, the model is defined as:
 	Y_k & = f_\theta(X_k) + \epsilon_k\,,                 & \text{observation model, }
 \end{align*}
 where $\theta$ are the unknown real-valued parameters of the network (weights and biases) and $f_\theta$ and $g_\theta$ are nonlinear parametric functions.
-We chose $(\eta_k)_{k\geq 1}$ and $(\epsilon_k)_{k\geq 1}$ as two independent sequences of i.i.d. centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
+We chose $(\eta_k)_{k\geq 1}$ and $(\epsilon_k)_{k\geq 1}$ as two sequences of independent centered Gaussian random variables with covariance matrices $\Sigma_x$ and $\Sigma_y$, although any distribution can be substituted.
 
 This decoupled approach aims at reducing the number of parameters in $\theta$, compared to $\varphi$, in order to estimate them using Sequential Monte Carlo methods.
 In the next section, we describe this second training procedure for the last layer only, by keeping $\hat \varphi$ fixed.
-All implementation and training details are postponed to Section~\ref{sec:exp}.
 
 \begin{figure}[htpb]
 	\centering
@@ -157,7 +159,10 @@ number of particles on-the-fly, see \cite{elvira2016adapting,elvira2021performan
 Our framework allows the use of any particle smoother to estimate \eqref{eq:grad_ll}.
 In this paper, we first opt for the Path-space smoother \cite{Kitagawa1996} for its simplicity, in order to illustrate our approach.
 In practice, it often leads to particle path degeneracy \cite{Andrieu2005}, which can be mitigated by substituting a more complex smoother such as the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
-Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}. With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation $\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})$,  where $p_\theta$ is the joint probability density function of $(X_{1:T}, Y_{1:T})$ for the model described in Section~\ref{sub:proposed_architecture}.
+Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
+With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation:
+$$\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\log p_\theta(\xi^\ell_{1:T}, Y_{1:T})\,,$$
+where $p_\theta$ is the joint probability density function of $(X_{1:T}, Y_{1:T})$ for the model described in Section~\ref{sub:proposed_architecture}.
 
 
 \subsection{Stochastic Gradient Descent for online estimation}
@@ -268,9 +273,8 @@ $$
 	p^N_{\widehat\theta,\widehat\varphi}(y_{k+1})= \sum_{i=1}^{N}\omega_k^i p_{\widehat\theta,\widehat\varphi}(y_{k+1}|\xi_k^i,U_{k+1})\,,
 $$
 where $ p_{\widehat\theta,\widehat\varphi}(y_{k+1}|\xi_k^i,U_{k+1})$ is the predictive distribution of $Y_{k+1}$ described in Section~\ref{sub:proposed_architecture}.
-Although predictions given the previous time step provide good performances, it is limited as many applications require multi-steps forecasts.
-In order to explore longer ranges, we can simply run our model to get $N$ samples for any time horizon $p$.
-The associated intervals containing 95\% of the samples are displayed in Figure~\ref{fig:filter_k+24}, for $1\leq p \leq 24$.
+In order to explore longer ranges, we run our model to get $N$ samples for any time horizon.
+The associated intervals containing 95\% of the samples are displayed in Figure~\ref{fig:filter_k+24}, for 24 hours forecasts.
 
 We compared our model with MC Dropout methods, by implementing recurrent dropout layers as described in \cite{Gal2016NIPS}.
 The optimal dropout rate $p_\textnormal{drop}=0.01$ that we tuned by grid search is smaller than the proposed value in the original paper, which may be due to our much longer time series, similarly to results presented in \cite{Zhu2017DeepAC}.
@@ -282,10 +286,9 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 
 \begin{figure}[htpb]
 	\centering
-	\caption{Prediction of Oil temperature (ETT Dataset) given observations in the lookback window ($k<24$) and without ($k>24$).
+	\caption{Forecasting of oil temperature given observations in the lookback window ($k<24$).
 		Since resampling of particles is no longer available at that point, the uncertainty grows for our model.
-		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).
-		Aggregated results on the entire validation set for the RMSE and PICP criteria can be found in Table~\ref{tab:ci_comparison}.}
+		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).}
 	\includegraphics[width=0.8\linewidth]{filter_kp24_ett.png}
 	%\includegraphics[width=0.8\linewidth]{filter_kp24_ett_2.png}
 	\label{fig:filter_k+24}
@@ -294,7 +297,6 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 \begin{table}[htpb]
 	\centering
 	\caption{Comparison of RMSE, PICP and computation time of our model against the benchmarked MC Dropout methods and HMM.
-		This table provide aggregated results of the simulation presented in Figure~\ref{fig:filter_k+24} on the entire validation set.
 		Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 		Mean values of the estimators are displayed along with their variance.}
 	\label{tab:ci_comparison}
@@ -322,8 +324,8 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 \label{sec:conclusion}
 
 In this paper, we introduced a decoupled architecture for uncertainty estimation on a time series dataset.
-Our deep neural network backbone is responsible for extracting high level features, while particle filtering allows modelling recurrent nonlinear uncertainty.
-Our proposed model improves confidence interval quality, compared to MC Dropout methods, while remaining simple and efficient to train, compared to VI alternatives.
+Our deep neural network backbone is responsible for extracting high level features, while particle filtering in the last layer allows modelling recurrent nonlinear uncertainty.
+Our proposed model doesn't suffer from the overconfidence of MC Dropout methods, while significantly improving on the performances of Hidden Markov Models.
 
 We demonstrate the potential behind implementing latent space models as a modified RNN cell ;
 more complex architectures, such as the GRU network used in the input model, or LSTM cells, could be considered.
