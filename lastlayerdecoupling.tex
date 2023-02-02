@@ -155,9 +155,9 @@ In this application we use for $p_k(\xi^{\ell}_{k-1},\widetilde U_k,\cdot)$ the 
 For $\ell \in \{1,\ldots,N\}$, $\xi^{\ell}_k$ is associated with the importance weight $\omega^{\ell}_k \propto \Psi_{Y_k, \Sigma_y}(f_\theta(\xi^{\ell}_k))$. Such a particle filter with multinomial resampling is referred to as the bootstrap algorithm, see \cite{gordon1993novel}. It has been extended and analyzed in many directions in the past decades, see \cite{pitt1999filtering,douc2005comparison,Chopin_2020}. In other lines of works, the adaptive tuning of the Monte Carlo effort has been analyzed in order to  adapt the
 number of particles on-the-fly, see \cite{elvira2016adapting,elvira2021performance}.
 
-\subsection{Particle smoother}
+\subsection{Particle smoother and online estimation}
 Our framework allows the use of any particle smoother to estimate \eqref{eq:grad_ll}.
-In this paper, we first opt for the Path-space smoother \cite{Kitagawa1996} for its simplicity, in order to illustrate our approach.
+In this paper, we first describe the Path-space smoother \cite{Kitagawa1996} for its simplicity, in order to illustrate our approach.
 In practice, it often leads to particle path degeneracy \cite{Andrieu2005}, which can be mitigated by substituting a more complex smoother such as the Forward Filtering Backward Smoothing \cite{Doucet2000OnSM} or the Forward Filtering Backward Simulation algorithm \cite{Godsill2004MonteCS}.
 Additionally, because estimating \eqref{eq:grad_ll} amounts to computing a smoothed expectation of an additive functional, we can also use very efficient forward-only SMC smoothers such as the PaRIS algorithm and its pseudo-marginal extensions \cite{Olsson2014EfficientPO,gloaguen2022pseudo}.
 With $\xi^i_{1:T}$ the ancestral line of $\xi^i_{T}$, the score function \eqref{eq:grad_ll} can be estimated as follows using automated differentiation:
@@ -165,7 +165,6 @@ $$\widehat {S}^N_\theta(Y_{1:T}) = \sum_{\ell=1}^N \omega_T^\ell\nabla_\theta\lo
 where $p_\theta$ is the joint probability density function of $(X_{1:T}, Y_{1:T})$ for the model described in Section~\ref{sub:proposed_architecture}.
 
 
-\subsection{Stochastic Gradient Descent for online estimation}
 The degeneracy relative to the smoothing problem can be overcome using
 \emph{backward sampling}. It is specifically designed for additive functionals so it is well suited to our setting \eqref{eq:grad_ll} since
 $\nabla_\theta\log p_\theta(x_{1:T}, y_{1:T}) = \sum_{t=1}^T \nabla_\theta \log m_{\theta}(x_{t-1},\widetilde u_t;x_t)  r_{\theta}(x_{t},y_t)$,
@@ -177,14 +176,14 @@ $	\widehat {S}^N_\theta(y_{1:T}) = \sum_{i = 1}^N \omega_T^i\tau_T^i$,
 %\end{equation}
 where the statistics $\{\tau_s^i\}_{i = 1}^N$ satisfy the recursion $\tau_{s + 1}^{i} = \tau_{s}^{I_{s+1}^{i}} + \tilde{h}_s(\xi_{s}^{I_{s+1}^{i}}, \xi_{s + 1}^{i})$,
 where $\tilde{h}_s(x_s,x_{s+1}) = \nabla_\theta \log m_{\theta}(x_{s},\widetilde u_{s+1};x_{s+1}) r_{\theta}(x_{s+1},y_{s+1})$.
-Following \cite{DelMoral2010,Olsson2014EfficientPO,martin2020backward,gloaguen2022pseudo}, the degeneracy of the path-space smoother can be overcome by performing an online update of the statistics using the backward kernel of the hidden Markov chain.
-An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification.
+Following \cite{DelMoral2010,Olsson2014EfficientPO,martin2020backward,gloaguen2022pseudo}, the degeneracy of the path-space smoother can be overcome by performing an online {\it PaRis} update of the statistics $\tau_{s + 1}^{i}$, $1\leq i\leq N$, using the backward kernel of the hidden Markov chain.
 
-In state space models, recursive maximum likelihood estimation produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
+
+An appealing application of the last layer approach is recursive maximum likelihood estimation, i.e., where new observations are used only once to update the estimator of the unknown parameter $\theta$. In \cite{Brosse2020OnLA}, the authors used in particular Stochastic Gradient Descent (SGD) and Stochastic Gradient Langevin Dynamics to update the estimation of $\theta$ and perform uncertainty quantification. In state space models, recursive maximum likelihood estimation produces a sequence $\lbrace\theta_k\rbrace_{k\geq 0}$ of parameter estimates writing, for each new observation $Y_{k},~k\geq 1$,
 $$
 	\theta_{k} = \theta_{k-1} + \gamma_k \nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1}) \,,
 $$
-where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\nabla_\theta\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{gloaguen2022pseudo}. The PaRIS algorithm proposed in \cite{Olsson2014EfficientPO} allows to use the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ and some statistics $\{\tau^{\ell}_k\}_{\ell=1}^N$ on-the-fly to approximate $\nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1})$ either using rejection sampling approaches or importance sampling steps.
+where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observation given all the past, and $\lbrace\gamma_k\rbrace_{k\geq 1}$ are positive step sizes such that $\sum_{k \geq 1}\gamma_k = \infty$ and $\sum_{k \geq 1}\gamma_k^2 < \infty$. The practical implementation of such an algorithm, where $\nabla_\theta\ell_{\theta}(Y_k | Y_{0:k - 1})$ is approximated using the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ can be found for instance in \cite{gloaguen2022pseudo}. The PaRIS algorithm proposed in \cite{Olsson2014EfficientPO} allows to use the weighted samples $\{(\xi^{\ell}_k,\omega^{\ell}_k)\}_{\ell=1}^N$ and the statistics $\{\tau^{\ell}_k\}_{\ell=1}^N$ on-the-fly to approximate $\nabla_\theta \ell_{\theta}(Y_k | Y_{0:k - 1})$.
 
 Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
 
@@ -315,11 +314,10 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 
 In this paper, we introduced a decoupled architecture for uncertainty estimation on a time series dataset.
 Our deep neural network backbone is responsible for extracting high level features, while particle filtering in the last layer allows modelling recurrent nonlinear uncertainty.
-Our proposed model doesn't suffer from the overconfidence of MC Dropout methods, while significantly improving on the performances of Hidden Markov Models.
+Our proposed model does not suffer from the overconfidence of MC Dropout methods, while significantly improving on the performances of Hidden Markov Models.
 
 We demonstrate the potential behind implementing latent space models as a modified RNN cell ;
 more complex architectures, such as the GRU network used in the input model, or LSTM cells, could be considered.
-Likewise, the Path-space smoother could be replaced by more performant alternatives.
 
 Our decoupled architecture enables incorporating uncertainty estimation to an already trained network.
 This opens the door to multiple, cheap finetuning of last layers parameters, from a global pretraining.
