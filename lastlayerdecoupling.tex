@@ -144,7 +144,7 @@ where $\mathbb{E}_\theta$ designs the expectation under the model parameterized 
 In the following paragraphs, we denote by $\Psi_{\mu, \Sigma}$ the Gaussian probability density function with mean vector $\mu$ and covariance matrix $\Sigma$.
 
 \subsection{Particle filter}
-The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for a nonlinear state space model, but it can be approximated using a family of particles $(\xi^{\ell}_{1:T})_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_T)_{\ell=1}^N$.
+The conditional distribution of $X_{1:T}$ given $Y_{1:T}$ is not available explicitly for a nonlinear state space model, but it can be approximated using a family of $N$ particles $(\xi^{\ell}_{1:T})_{\ell=1}^N$ associated with importance weights $(\omega^{\ell}_T)_{\ell=1}^N$.
 % We first produce a set of histories  associated with importance weights  using the Path-space smoother.
 At $k = 0$, $(\xi^{\ell}_0)_{\ell=1}^N$ are sampled independently from $\rho_0 = \Psi_{0, \Sigma_x}$, and each particle $\xi^{\ell}_0$ is associated with the standard importance sampling weight $\omega_0^{\ell} \propto  \Psi_{Y_0, \Sigma_y}(f_\theta(\xi^{\ell}_0))$.
 Then, for $k\geq 1$, using $\{(\xi^{\ell}_{k-1},\omega^{\ell}_{k-1})\}_{\ell=1}^N$, we sample pairs $\{(I^{\ell}_k,\xi^{\ell}_{k})\}_{\ell=1}^N$ of indices and particles from the instrumental distribution:
