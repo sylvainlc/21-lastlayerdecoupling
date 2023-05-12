@@ -125,8 +125,8 @@ In the next section, we describe this second training procedure for the last lay
 
 \begin{figure}[htpb]
 	\centering
-	\caption{Our architecture combining a generic input model with a state space model on the last layer.}
 	\includegraphics[width=0.5\linewidth]{architecture.png}
+	\caption{Our architecture combining a generic input model with a state space model on the last layer.}
 	\label{fig:architecture}
 \end{figure}
 
@@ -188,7 +188,6 @@ where $\ell_{\theta}(Y_k | Y_{0:k - 1})$ is the loglikelihood for the new observ
 Although this algorithm is very efficient to update parameters recusrively, it is computationally intensive and therefore fits particularly well our last layer approach as it would be intractable for very high dimensional latent states.
 
 \begin{algorithm}
-	\caption{Two-stage learning}
 	\label{alg:particle_filter}
 	$\hat \varphi \gets$ Train the input model $h_\varphi$\;
 	$\widetilde U_{1:T} \gets h_{\hat \varphi}(U_{1:T})$\;
@@ -205,7 +204,7 @@ Although this algorithm is very efficient to update parameters recusrively, it i
 	}
 	Update the parameter estimate using gradient descent with estimated gradient $\widehat {S}^N_{\widehat \theta_{p-1}}(Y_{1:T})$.
 	}
-
+	\caption{Two-stage learning}
 \end{algorithm}
 
 \section{Experiments}
@@ -275,11 +274,11 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 
 \begin{figure}[htpb]
 	\centering
+	\includegraphics[width=0.8\linewidth]{filter_kp24_ett.png}
+	%\includegraphics[width=0.8\linewidth]{filter_kp24_ett_2.png}
 	\caption{Forecasting of oil temperature given observations in the lookback window ($k<24$).
 		Since resampling of particles is no longer available at that point, the uncertainty grows for our model.
 		As a comparison, we plotted the confidence intervals produced by the MC Dropout model (for $p_\textnormal{drop}=0.01$).}
-	\includegraphics[width=0.8\linewidth]{filter_kp24_ett.png}
-	%\includegraphics[width=0.8\linewidth]{filter_kp24_ett_2.png}
 	\label{fig:filter_k+24}
 \end{figure}
 
@@ -288,7 +287,6 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 	\caption{Comparison of RMSE, PICP and computation time of our model against the benchmarked MC Dropout methods and HMM.
 		Two versions of the dropout model were evaluated, with dropout values $p_\textnormal{drop}=0.05$ and $p_\textnormal{drop}=0.01$.
 		Mean values of the estimators are displayed along with their variance.}
-	\label{tab:ci_comparison}
 	\begin{tabular}{llll}
 		\toprule
 		             & RMSE            & PICP   & Computation time  \\
@@ -299,6 +297,7 @@ Out of a range of possible latent dimension sizes $d_{\texttt{hmm}} \in \{1, 2, 
 		HMM          & $0.44 \pm 0.13$ & $85\%$ & $994 ms \pm 21.4$ \\
 		\bottomrule
 	\end{tabular}
+	\label{tab:ci_comparison}
 \end{table}
 
 %Evaluations listed in priority order
